@@ -4,7 +4,7 @@
 <summary>Example configuration</summary>
 
 ```toml
-{{#include ../../tuwunel-example.toml}}
+{{#include ../../matron-server-example.toml}}
 ```
 
 </details>
@@ -15,7 +15,7 @@
 <summary>Debian systemd unit file</summary>
 
 ```
-{{#include ../../debian/tuwunel.service}}
+{{#include ../../debian/matron-server.service}}
 ```
 
 </details>
@@ -26,7 +26,7 @@
 <summary>Arch Linux systemd unit file</summary>
 
 ```
-{{#include ../../arch/tuwunel.service}}
+{{#include ../../arch/matron-server.service}}
 ```
 
 </details>

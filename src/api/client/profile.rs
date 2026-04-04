@@ -15,7 +15,7 @@ use ruma::{
 	},
 	presence::PresenceState,
 };
-use tuwunel_core::{Err, Result, utils::future::TryExtExt};
+use matron_server_core::{Err, Result, utils::future::TryExtExt};
 
 use crate::Ruma;
 

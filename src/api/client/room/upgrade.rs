@@ -21,7 +21,7 @@ use serde_json::{
 	Value as JsonValue, json,
 	value::{to_raw_value, to_value},
 };
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, debug_info, err, error, implement, info, is_equal_to, is_less_than,
 	matrix::{Event, StateKey, pdu::PduBuilder, room_version},
 	utils::{
@@ -29,7 +29,7 @@ use tuwunel_core::{
 		stream::{IterStream, ReadyExt, WidebandExt},
 	},
 };
-use tuwunel_service::{Services, rooms::timeline::RoomMutexGuard};
+use matron_server_service::{Services, rooms::timeline::RoomMutexGuard};
 
 use crate::Ruma;
 

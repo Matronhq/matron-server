@@ -17,7 +17,7 @@ pub(crate) mod server;
 pub(crate) mod token;
 pub(crate) mod user;
 
-pub(crate) use tuwunel_macros::{admin_command, admin_command_dispatch};
+pub(crate) use matron_server_macros::{admin_command, admin_command_dispatch};
 
 pub(crate) use crate::{context::Context, utils::get_room_info};
 
@@ -25,12 +25,12 @@ pub(crate) const PAGE_SIZE: usize = 100;
 
 use log as _;
 
-tuwunel_core::mod_ctor! {}
-tuwunel_core::mod_dtor! {}
-tuwunel_core::rustc_flags_capture! {}
+matron_server_core::mod_ctor! {}
+matron_server_core::mod_dtor! {}
+matron_server_core::rustc_flags_capture! {}
 
 /// Install the admin command processor
-pub async fn init(admin_service: &tuwunel_service::admin::Service) {
+pub async fn init(admin_service: &matron_server_service::admin::Service) {
 	_ = admin_service
 		.complete
 		.write()
@@ -44,7 +44,7 @@ pub async fn init(admin_service: &tuwunel_service::admin::Service) {
 }
 
 /// Uninstall the admin command handler
-pub async fn fini(admin_service: &tuwunel_service::admin::Service) {
+pub async fn fini(admin_service: &matron_server_service::admin::Service) {
 	_ = admin_service.handle.write().await.take();
 	_ = admin_service
 		.complete

@@ -32,9 +32,9 @@ cargo_feat_sets = {
     # Default features
     default = "brotli_compression,element_hacks,gzip_compression,io_uring,jemalloc,jemalloc_conf,media_thumbnail,release_max_log_level,systemd,url_preview,zstd_compression"
     # All features sans release_max_log_level
-    logging = "blurhashing,brotli_compression,bzip2_compression,console,direct_tls,element_hacks,gzip_compression,io_uring,jemalloc,jemalloc_conf,jemalloc_prof,jemalloc_stats,ldap,lz4_compression,media_thumbnail,perf_measurements,sentry_telemetry,systemd,tokio_console,tuwunel_mods,url_preview,zstd_compression"
+    logging = "blurhashing,brotli_compression,bzip2_compression,console,direct_tls,element_hacks,gzip_compression,io_uring,jemalloc,jemalloc_conf,jemalloc_prof,jemalloc_stats,ldap,lz4_compression,media_thumbnail,perf_measurements,sentry_telemetry,systemd,tokio_console,matron_server_mods,url_preview,zstd_compression"
     # All features
-    all = "blurhashing,brotli_compression,bzip2_compression,console,direct_tls,element_hacks,gzip_compression,io_uring,jemalloc,jemalloc_conf,jemalloc_prof,jemalloc_stats,ldap,lz4_compression,media_thumbnail,perf_measurements,release_max_log_level,sentry_telemetry,systemd,tokio_console,tuwunel_mods,url_preview,zstd_compression"
+    all = "blurhashing,brotli_compression,bzip2_compression,console,direct_tls,element_hacks,gzip_compression,io_uring,jemalloc,jemalloc_conf,jemalloc_prof,jemalloc_stats,ldap,lz4_compression,media_thumbnail,perf_measurements,release_max_log_level,sentry_telemetry,systemd,tokio_console,matron_server_mods,url_preview,zstd_compression"
 }
 variable "cargo_features_always" {
     default = "direct_tls"
@@ -107,7 +107,7 @@ variable "complement_skip" {
 
 # Package metadata inputs
 variable "package_name" {
-    default = "tuwunel"
+    default = "matron-server"
 }
 variable "package_authors" {
     default = "Jason Volk <jason@zemos.net>"
@@ -480,7 +480,7 @@ target "rust-sdk-valgrind" {
     }
     args = {
         VALGRINDFLAGS = "${valgrind_flags}"
-        mrsdk_testee = "valgrind ${valgrind_flags} /usr/bin/tuwunel ${valgrind_testee_args}"
+        mrsdk_testee = "valgrind ${valgrind_flags} /usr/bin/matron-server ${valgrind_testee_args}"
         mrsdk_test_args = ""
         mrsdk_startup_delay = "30s"
         mrsdk_skip_list =<<EOF
@@ -511,7 +511,7 @@ target "rust-sdk-integ" {
     args = {
         mrsdk_target_share = "/usr/src/matrix-rust-sdk/target/${sys_name}/${sys_version}/${rust_target}/${rust_toolchain}/_shared_cache"
 
-        mrsdk_testee = "/usr/bin/tuwunel"
+        mrsdk_testee = "/usr/bin/matron-server"
         mrsdk_test_args = "--no-fail-fast"
 
         mrsdk_skip_list =<<EOF
@@ -553,7 +553,7 @@ target "integ" {
         input = elem("target:build-tests", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
     }
     args = {
-        TUWUNEL_DATABASE_PATH = "/tmp/integration.test.db"
+        MATRON_SERVER_DATABASE_PATH = "/tmp/integration.test.db"
         cargo_cmd = (cargo_profile == "bench"? "bench": "test")
         cargo_args = (cargo_profile == "bench"?
             "--no-fail-fast --bench=*": "--no-fail-fast --test=*"
@@ -742,13 +742,13 @@ install_labels = {
     "org.opencontainers.image.authors" = "${package_authors}"
     "org.opencontainers.image.created" = "${package_last_modified}"
     "org.opencontainers.image.description" = "Matrix Chat Server in Rust"
-    "org.opencontainers.image.documentation" = "https://github.com/matrix-construct/tuwunel/tree/main/docs/"
+    "org.opencontainers.image.documentation" = "https://github.com/matronhq/matron-server/tree/main/docs/"
     "org.opencontainers.image.licenses" = "Apache-2.0"
     "org.opencontainers.image.revision" = "${package_revision}"
-    "org.opencontainers.image.source" = "https://github.com/matrix-construct/tuwunel"
+    "org.opencontainers.image.source" = "https://github.com/matronhq/matron-server"
     "org.opencontainers.image.title" = "${package_name}"
-    "org.opencontainers.image.url" = "https://github.com/matrix-construct/tuwunel"
-    "org.opencontainers.image.vendor" = "matrix-construct"
+    "org.opencontainers.image.url" = "https://github.com/matronhq/matron-server"
+    "org.opencontainers.image.vendor" = "yearbook"
     "org.opencontainers.image.version" = "${package_version}"
 }
 
@@ -756,13 +756,13 @@ install_annotations = [
     "org.opencontainers.image.authors=${package_authors}",
     "org.opencontainers.image.created=${package_last_modified}",
     "org.opencontainers.image.description=Matrix Chat Server in Rust",
-    "org.opencontainers.image.documentation=https://github.com/matrix-construct/tuwunel/tree/main/docs/",
+    "org.opencontainers.image.documentation=https://github.com/matronhq/matron-server/tree/main/docs/",
     "org.opencontainers.image.licenses=Apache-2.0",
     "org.opencontainers.image.revision=${package_revision}",
-    "org.opencontainers.image.source=https://github.com/matrix-construct/tuwunel",
+    "org.opencontainers.image.source=https://github.com/matronhq/matron-server",
     "org.opencontainers.image.title=${package_name}",
-    "org.opencontainers.image.url=https://github.com/matrix-construct/tuwunel",
-    "org.opencontainers.image.vendor=matrix-construct",
+    "org.opencontainers.image.url=https://github.com/matronhq/matron-server",
+    "org.opencontainers.image.vendor=yearbook",
     "org.opencontainers.image.version=${package_version}",
 ]
 
@@ -771,7 +771,7 @@ target "oci" {
     tags = [
         elem_tag("oci", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
     ]
-    output = ["type=oci,dest=tuwunel-oci.tar.zst,compression=zstd,compression-level=${zstd_image_compress_level},force-compression=true,mode=min"]
+    output = ["type=oci,dest=matron-server-oci.tar.zst,compression=zstd,compression-level=${zstd_image_compress_level},force-compression=true,mode=min"]
     matrix = cargo_rust_feat_sys
     inherits = [
         elem("docker", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
@@ -803,7 +803,7 @@ target "docker" {
         FROM scratch AS install
         COPY --from=input . .
         EXPOSE 8008 8448
-        ENTRYPOINT ["tuwunel"]
+        ENTRYPOINT ["matron-server"]
 EOF
 }
 
@@ -822,7 +822,7 @@ target "static" {
     }
     dockerfile-inline =<<EOF
         FROM scratch AS install
-        COPY --from=input /usr/bin/tuwunel /usr/bin/tuwunel
+        COPY --from=input /usr/bin/matron-server /usr/bin/matron-server
 EOF
 }
 
@@ -951,7 +951,7 @@ target "build-rpm" {
         input = elem("target:build-bins", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     }
     args = {
-        pkg_dir = "/opt/tuwunel/rpm"
+        pkg_dir = "/opt/matron-server/rpm"
     }
 }
 
@@ -1003,7 +1003,7 @@ target "build-deb" {
         input = elem("target:build-bins", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     }
     args = {
-        pkg_dir = "/opt/tuwunel/deb"
+        pkg_dir = "/opt/matron-server/deb"
     }
 }
 
@@ -1061,7 +1061,7 @@ target "book" {
     }
     dockerfile-inline =<<EOF
         FROM input AS book
-        RUN ["mdbook", "build", "-d", "/book", "/usr/src/tuwunel"]
+        RUN ["mdbook", "build", "-d", "/book", "/usr/src/matron-server"]
 EOF
 }
 
@@ -1372,7 +1372,7 @@ target "deps-check" {
 }
 
 variable "cargo_tgt_dir_base" {
-    default = "/usr/src/tuwunel/target"
+    default = "/usr/src/matron-server/target"
 }
 
 target "deps-base" {

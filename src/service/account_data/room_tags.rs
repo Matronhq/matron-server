@@ -6,7 +6,7 @@ use ruma::{
 		tag::{TagEvent, TagEventContent, TagInfo, TagName, Tags},
 	},
 };
-use tuwunel_core::{Result, implement};
+use matron_server_core::{Result, implement};
 
 #[implement(super::Service)]
 pub async fn set_room_tag(

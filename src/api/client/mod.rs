@@ -36,7 +36,7 @@ pub(super) mod tag;
 pub(super) mod thirdparty;
 pub(super) mod threads;
 pub(super) mod to_device;
-pub(super) mod tuwunel;
+pub(super) mod matron_server;
 pub(super) mod typing;
 pub(super) mod unstable;
 pub(super) mod user_directory;
@@ -84,7 +84,7 @@ pub(super) use tag::*;
 pub(super) use thirdparty::*;
 pub(super) use threads::*;
 pub(super) use to_device::*;
-pub(super) use tuwunel::*;
+pub(super) use matron_server::*;
 pub(super) use typing::*;
 pub(super) use unstable::*;
 pub(super) use user_directory::*;
@@ -93,7 +93,7 @@ pub(super) use voip::*;
 pub(super) use well_known::*;
 
 /// generated user access token length
-const TOKEN_LENGTH: usize = tuwunel_service::users::device::TOKEN_LENGTH;
+const TOKEN_LENGTH: usize = matron_server_service::users::device::TOKEN_LENGTH;
 
 /// generated user session ID length
-const SESSION_ID_LENGTH: usize = tuwunel_service::uiaa::SESSION_ID_LENGTH;
+const SESSION_ID_LENGTH: usize = matron_server_service::uiaa::SESSION_ID_LENGTH;

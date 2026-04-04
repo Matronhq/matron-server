@@ -1,16 +1,16 @@
-# tuwunel in Podman systemd
+# matron-server in Podman systemd
 
-Copy [tuwunel.container](tuwunel.container) to ~/.config/containers/systemd/tuwunel.container.
+Copy [matron-server.container](matron-server.container) to ~/.config/containers/systemd/matron-server.container.
 Reload daemon:
 ```
 systemctl --user daemon-reload
 ```
 Start the service:
 ```
-systemctl --user start tuwunel
+systemctl --user start matron-server
 ```
 
 To check the logs, run:
 ```
-journalctl -eu tuwunel.container --user
+journalctl -eu matron-server.container --user
 ```

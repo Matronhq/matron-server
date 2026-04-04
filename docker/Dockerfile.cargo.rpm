@@ -22,7 +22,7 @@ ARG gen_rpm_args=""
 WORKDIR /
 COPY --link --from=input . .
 
-WORKDIR /usr/src/tuwunel
+WORKDIR /usr/src/matron-server
 RUN \
 --mount=type=cache,dst=${RUSTUP_HOME}/downloads,sharing=shared \
 --mount=type=cache,dst=${CARGO_HOME}/registry,sharing=shared \
@@ -51,14 +51,14 @@ RUN \
 			--output "${pkg_dir}" \
 			${gen_rpm_args}
 
-	mv ${pkg_dir}/* "${pkg_dir}/tuwunel.rpm"
+	mv ${pkg_dir}/* "${pkg_dir}/matron-server.rpm"
 EOF
 
 
 FROM scratch AS rpm
 ARG pkg_dir
 
-COPY --from=input ${pkg_dir}/tuwunel.rpm .
+COPY --from=input ${pkg_dir}/matron-server.rpm .
 
 
 FROM input AS rpm-install
@@ -71,6 +71,6 @@ WORKDIR ${pkg_dir}
 COPY --link --from=rpm . .
 RUN <<EOF
 	set -eux
-	rpm -i --test tuwunel.rpm
-	rpm -i tuwunel.rpm
+	rpm -i --test matron-server.rpm
+	rpm -i matron-server.rpm
 EOF

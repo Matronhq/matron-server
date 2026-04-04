@@ -22,7 +22,7 @@ ARG deb_args=""
 WORKDIR /
 COPY --link --from=input . .
 
-WORKDIR /usr/src/tuwunel
+WORKDIR /usr/src/matron-server
 RUN \
 --mount=type=cache,dst=${RUSTUP_HOME}/downloads,sharing=shared \
 --mount=type=cache,dst=${CARGO_HOME}/registry,sharing=shared \
@@ -55,16 +55,16 @@ RUN \
             --output "${pkg_dir}" \
             ${deb_args}
 
-	mv ${pkg_dir}/* "${pkg_dir}/tuwunel.deb"
-	dpkg --info "${pkg_dir}/tuwunel.deb"
-	dpkg --contents "${pkg_dir}/tuwunel.deb"
+	mv ${pkg_dir}/* "${pkg_dir}/matron-server.deb"
+	dpkg --info "${pkg_dir}/matron-server.deb"
+	dpkg --contents "${pkg_dir}/matron-server.deb"
 EOF
 
 
 FROM scratch AS deb
 ARG pkg_dir
 
-COPY --from=input ${pkg_dir}/tuwunel.deb .
+COPY --from=input ${pkg_dir}/matron-server.deb .
 
 
 FROM input AS deb-install
@@ -77,7 +77,7 @@ WORKDIR ${pkg_dir}
 COPY --from=deb . .
 RUN <<EOF
 	set -eux
-	dpkg --info tuwunel.deb
-	dpkg --contents tuwunel.deb
-	dpkg --install tuwunel.deb
+	dpkg --info matron-server.deb
+	dpkg --contents matron-server.deb
+	dpkg --install matron-server.deb
 EOF

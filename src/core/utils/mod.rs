@@ -23,7 +23,7 @@ pub mod two_phase_counter;
 pub mod unhandled;
 
 pub use ::ctor::{ctor, dtor};
-pub use ::tuwunel_macros::implement;
+pub use ::matron_server_macros::implement;
 
 pub use self::{
 	arrayvec::ArrayVecExt,

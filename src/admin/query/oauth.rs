@@ -1,14 +1,14 @@
 use clap::Subcommand;
 use futures::{StreamExt, TryStreamExt};
 use ruma::OwnedUserId;
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, apply,
 	either::{Either, Left, Right},
 	err,
 	itertools::Itertools,
 	utils::stream::{IterStream, ReadyExt},
 };
-use tuwunel_service::oauth::{Provider, ProviderId, SessionId};
+use matron_server_service::oauth::{Provider, ProviderId, SessionId};
 
 use crate::{admin_command, admin_command_dispatch};
 

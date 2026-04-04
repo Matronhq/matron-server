@@ -11,7 +11,7 @@ use ruma::{
 	},
 	serde::Raw,
 };
-use tuwunel_core::{
+use matron_server_core::{
 	Result, debug, err,
 	matrix::{
 		Event,
@@ -205,7 +205,7 @@ where
 	}
 
 	let content = ReceiptEventContent::from_iter(json);
-	tuwunel_core::trace!(?content);
+	matron_server_core::trace!(?content);
 	Raw::from_json(
 		serde_json::value::to_raw_value(&SyncEphemeralRoomEvent { content })
 			.expect("received valid json"),

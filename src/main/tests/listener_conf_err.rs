@@ -2,7 +2,7 @@
 #![allow(unused_features)] // 1.96.0-nightly 2026-03-07 bug
 
 use insta::{assert_debug_snapshot, with_settings};
-use tuwunel::{Args, Runtime, Server};
+use matron_server::{Args, Runtime, Server};
 
 #[test]
 #[should_panic = "There was a problem with your configuration"]
@@ -16,7 +16,7 @@ fn listener_conf_err() {
 
 		let runtime = Runtime::new(Some(&args)).unwrap();
 		let server = Server::new(Some(&args), Some(&runtime)).unwrap();
-		let result = tuwunel::exec(&server, runtime);
+		let result = matron_server::exec(&server, runtime);
 
 		assert_debug_snapshot!(result);
 	});

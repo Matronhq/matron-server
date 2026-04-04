@@ -3,8 +3,8 @@ set -e
 
 #. /usr/share/debconf/confmodule
 
-TUWUNEL_CONFIG_PATH=/etc/tuwunel
-TUWUNEL_DATABASE_PATH=/var/lib/tuwunel
+MATRON_SERVER_CONFIG_PATH=/etc/matron-server
+MATRON_SERVER_DATABASE_PATH=/var/lib/matron-server
 CONDUIT_DATABASE_PATH_SYMLINK=/var/lib/matrix-conduit
 CONDUWUIT_DATABASE_PATH_SYMLINK=/var/lib/conduwuit
 
@@ -19,17 +19,17 @@ case $1 in
 
     #
 
-    if [ -d "$TUWUNEL_CONFIG_PATH" ]; then
-      if test -L "$TUWUNEL_CONFIG_PATH"; then
-        echo "Deleting tuwunel configuration files"
-        rm -v -r "$TUWUNEL_CONFIG_PATH"
+    if [ -d "$MATRON_SERVER_CONFIG_PATH" ]; then
+      if test -L "$MATRON_SERVER_CONFIG_PATH"; then
+        echo "Deleting matron-server configuration files"
+        rm -v -r "$MATRON_SERVER_CONFIG_PATH"
       fi
     fi
 
-    if [ -d "$TUWUNEL_DATABASE_PATH" ]; then
-      if test -L "$TUWUNEL_DATABASE_PATH"; then
-        echo "Deleting tuwunel database directory"
-        rm -r "$TUWUNEL_DATABASE_PATH"
+    if [ -d "$MATRON_SERVER_DATABASE_PATH" ]; then
+      if test -L "$MATRON_SERVER_DATABASE_PATH"; then
+        echo "Deleting matron-server database directory"
+        rm -r "$MATRON_SERVER_DATABASE_PATH"
       fi
     fi
 

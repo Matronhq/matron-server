@@ -1,12 +1,12 @@
 use std::time::Duration;
 
 use ruma::{CanonicalJsonValue, Mxc, OwnedEventId, OwnedMxcUri, OwnedServerName};
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, debug, err, error, info, trace,
 	utils::{math::Expected, time::parse_timepoint_ago},
 	warn,
 };
-use tuwunel_service::media::Dim;
+use matron_server_service::media::Dim;
 
 use crate::{admin_command, utils::parse_local_user_id};
 

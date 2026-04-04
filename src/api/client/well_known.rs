@@ -3,7 +3,7 @@ use ruma::api::client::discovery::{
 	discover_homeserver::{self, HomeserverInfo},
 	discover_support::{self, Contact},
 };
-use tuwunel_core::{Err, Result};
+use matron_server_core::{Err, Result};
 
 use crate::{Ruma, client::rtc};
 

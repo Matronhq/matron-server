@@ -9,5 +9,5 @@ use log as _;
 
 pub(crate) use self::router::{Ruma, RumaResponse, State};
 
-tuwunel_core::mod_ctor! {}
-tuwunel_core::mod_dtor! {}
+matron_server_core::mod_ctor! {}
+matron_server_core::mod_dtor! {}

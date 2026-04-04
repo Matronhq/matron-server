@@ -1,4 +1,4 @@
-### Tuwunel Configuration
+### Matron Server Configuration
 ###
 ### THIS FILE IS GENERATED. CHANGES/CONTRIBUTIONS IN THE REPO WILL BE
 ### OVERWRITTEN!
@@ -13,7 +13,7 @@
 ### that say "YOU NEED TO EDIT THIS".
 ###
 ### For more information, see:
-### https://tuwunel.chat/configuration.html
+### https://matron.chat/configuration.html
 
 
 [global]
@@ -22,7 +22,7 @@
 # suffix for user and room IDs/aliases.
 #
 # See the docs for reverse proxying and delegation:
-# https://tuwunel.chat/deploying/generic.html#setting-up-the-reverse-proxy
+# https://matron.chat/deploying/generic.html#setting-up-the-reverse-proxy
 #
 # Also see the `[global.well_known]` config section at the very bottom.
 #
@@ -33,14 +33,14 @@
 # YOU NEED TO EDIT THIS. THIS CANNOT BE CHANGED AFTER WITHOUT A DATABASE
 # WIPE.
 #
-# example: "girlboss.ceo"
+# example: "example.com"
 #
 #server_name =
 
-# This is the only directory where tuwunel will save its data, including
+# This is the only directory where matron-server will save its data, including
 # media. Note: this was previously "/var/lib/matrix-conduit".
 #
-#database_path = "/var/lib/tuwunel"
+#database_path = "/var/lib/matron-server"
 
 # Text which will be added to the end of the user's displayname upon
 # registration with a space before the text. In Conduit, this was the
@@ -48,9 +48,9 @@
 #
 # To disable, set this to "" (an empty string).
 #
-#new_user_displayname_suffix = "💕"
+#new_user_displayname_suffix = ""
 
-# The default address (IPv4 or IPv6) tuwunel will listen on.
+# The default address (IPv4 or IPv6) matron-server will listen on.
 #
 # If you are using Docker or a container NAT networking setup, this must
 # be "0.0.0.0".
@@ -60,10 +60,10 @@
 #
 #address = ["127.0.0.1", "::1"]
 
-# The port(s) tuwunel will listen on.
+# The port(s) matron-server will listen on.
 #
 # For reverse proxying, see:
-# https://tuwunel.chat/deploying/generic.html#setting-up-the-reverse-proxy
+# https://matron.chat/deploying/generic.html#setting-up-the-reverse-proxy
 #
 # If you are using Docker, don't change this, you'll need to map an
 # external port to this.
@@ -72,13 +72,13 @@
 #
 #port = 8008
 
-# The UNIX socket tuwunel will listen on.
+# The UNIX socket matron-server will listen on.
 #
 # Remember to make sure that your reverse proxy has access to this socket
-# file, either by adding your reverse proxy to the 'tuwunel' group or
+# file, either by adding your reverse proxy to the 'matron-server' group or
 # granting world R/W permissions with `unix_socket_perms` (666 minimum).
 #
-# example: "/run/tuwunel/tuwunel.sock"
+# example: "/run/matron-server/matron-server.sock"
 #
 #unix_socket_path =
 
@@ -86,7 +86,7 @@
 #
 #unix_socket_perms = 660
 
-# Error on startup if any config option specified is unknown to Tuwunel.
+# Error on startup if any config option specified is unknown to Matron Server.
 #
 # This is false by default to allow easier deprecation or removal of
 # config options in the future without breaking existing deployments. The
@@ -94,14 +94,14 @@
 #
 #error_on_unknown_config_opts = false
 
-# tuwunel supports online database backups using RocksDB's Backup engine
-# API. To use this, set a database backup path that tuwunel can write
+# matron-server supports online database backups using RocksDB's Backup engine
+# API. To use this, set a database backup path that matron-server can write
 # to.
 #
 # For more information, see:
-# https://tuwunel.chat/maintenance.html#backups
+# https://matron.chat/maintenance.html#backups
 #
-# example: "/opt/tuwunel-db-backups"
+# example: "/opt/matron-server-db-backups"
 #
 #database_backup_path =
 
@@ -110,7 +110,7 @@
 #
 #database_backups_to_keep = 1
 
-# Set this to any float value to multiply tuwunel's in-memory LRU caches
+# Set this to any float value to multiply matron-server's in-memory LRU caches
 # with such as "auth_chain_cache_capacity".
 #
 # May be useful if you have significant memory to spare to increase
@@ -123,7 +123,7 @@
 #
 #cache_capacity_modifier = 1.0
 
-# Set this to any float value in megabytes for tuwunel to tell the
+# Set this to any float value in megabytes for matron-server to tell the
 # database engine that this much memory is available for database read
 # caches.
 #
@@ -137,7 +137,7 @@
 #
 #db_cache_capacity_mb = varies by system
 
-# Set this to any float value in megabytes for tuwunel to tell the
+# Set this to any float value in megabytes for matron-server to tell the
 # database engine that this much memory is available for database write
 # caches.
 #
@@ -258,9 +258,9 @@
 # Enable using *only* TCP for querying your specified nameservers instead
 # of UDP.
 #
-# If you are running tuwunel in a container environment, this config
+# If you are running matron-server in a container environment, this config
 # option may need to be enabled. For more details, see:
-# https://tuwunel.chat/troubleshooting.html#potential-dns-issues-when-using-docker
+# https://matron.chat/troubleshooting.html#potential-dns-issues-when-using-docker
 #
 #query_over_tcp_only = false
 
@@ -474,9 +474,9 @@
 # tokens. Multiple tokens can be added if you separate them with
 # whitespace
 #
-# tuwunel must be able to access the file, and it must not be empty
+# matron-server must be able to access the file, and it must not be empty
 #
-# example: "/etc/tuwunel/.reg_token"
+# example: "/etc/matron-server/.reg_token"
 #
 #registration_token_file =
 
@@ -613,12 +613,12 @@
 #allow_room_creation = true
 
 # Set to false to disable users from joining or creating room versions
-# that aren't officially supported by tuwunel. Unstable room versions may
+# that aren't officially supported by matron-server. Unstable room versions may
 # have flawed specifications or our implementation may be non-conforming.
 # Correct operation may not be guaranteed, but incorrect operation may be
 # tolerable and unnoticed.
 #
-# tuwunel officially supports room versions 6+. tuwunel has slightly
+# matron-server officially supports room versions 6+. matron-server has slightly
 # experimental (though works fine in practice) support for versions 3 - 5.
 #
 #allow_unstable_room_versions = true
@@ -632,7 +632,7 @@
 #
 #allow_experimental_room_versions = false
 
-# Default room version tuwunel will create rooms with.
+# Default room version matron-server will create rooms with.
 #
 # The default is prescribed by the spec, but may be selected by developer
 # recommendation. To prevent stale documentation we no longer list it
@@ -701,7 +701,7 @@
 # Servers listed here will be used to gather public keys of other servers
 # (notary trusted key servers).
 #
-# Currently, tuwunel doesn't support inbound batched key requests, so
+# Currently, matron-server doesn't support inbound batched key requests, so
 # this list should only contain other Synapse servers.
 #
 # example: ["matrix.org", "tchncs.de"]
@@ -747,7 +747,7 @@
 #
 #trusted_server_batch_concurrency = 2
 
-# Max log level for tuwunel. Allows debug, info, warn, or error.
+# Max log level for matron-server. Allows debug, info, warn, or error.
 #
 # See also:
 # https://docs.rs/tracing-subscriber/latest/tracing_subscriber/filter/struct.EnvFilter.html#directives
@@ -772,7 +772,7 @@
 #
 #log_span_events = "none"
 
-# Configures whether TUWUNEL_LOG EnvFilter matches values using regular
+# Configures whether MATRON_SERVER_LOG EnvFilter matches values using regular
 # expressions. See the tracing_subscriber documentation on Directives.
 #
 #log_filter_regex = true
@@ -890,7 +890,7 @@
 # This takes priority over "turn_secret" first, and falls back to
 # "turn_secret" if invalid or failed to open.
 #
-# example: "/etc/tuwunel/.turn_secret"
+# example: "/etc/matron-server/.turn_secret"
 #
 #turn_secret_file =
 
@@ -898,11 +898,11 @@
 #
 #turn_ttl = 86400
 
-# List/vector of room IDs or room aliases that tuwunel will make newly
+# List/vector of room IDs or room aliases that matron-server will make newly
 # registered users join. The rooms specified must be rooms that you have
 # joined at least once on the server, and must be public.
 #
-# example: ["#tuwunel:grin.hu",
+# example: ["#matron:matron.chat",
 # "!l2xV0sd51lraysuRcsWVECge4NULaH3g-ou95vgDgiM"]
 #
 #auto_join_rooms = []
@@ -926,9 +926,9 @@
 #
 #auto_deactivate_banned_room_attempts = false
 
-# RocksDB log level. This is not the same as tuwunel's log level. This
+# RocksDB log level. This is not the same as matron-server's log level. This
 # is the log level for the RocksDB engine/library which show up in your
-# database folder/path as `LOG` files. tuwunel will log RocksDB errors
+# database folder/path as `LOG` files. matron-server will log RocksDB errors
 # as normal through tracing or panics if severe for safety.
 #
 #rocksdb_log_level = "error"
@@ -949,7 +949,7 @@
 # Set this to true to use RocksDB config options that are tailored to HDDs
 # (slower device storage).
 #
-# It is worth noting that by default, tuwunel will use RocksDB with
+# It is worth noting that by default, matron-server will use RocksDB with
 # Direct IO enabled. *Generally* speaking this improves performance as it
 # bypasses buffered I/O (system page cache). However there is a potential
 # chance that Direct IO may cause issues with database operations if your
@@ -957,7 +957,7 @@
 # possibly ZFS filesystem. RocksDB generally deals/corrects these issues
 # but it cannot account for all setups. If you experience any weird
 # RocksDB issues, try enabling this option as it turns off Direct IO and
-# feel free to report in the tuwunel Matrix room if this option fixes
+# feel free to report in the matron-server Matrix room if this option fixes
 # your DB issues.
 #
 # For more information, see:
@@ -1012,7 +1012,7 @@
 # as they all differ. See their `kDefaultCompressionLevel`.
 #
 # Note when using the default value we may override it with a setting
-# tailored specifically tuwunel.
+# tailored specifically matron-server.
 #
 #rocksdb_compression_level = 32767
 
@@ -1028,7 +1028,7 @@
 # algorithm.
 #
 # Note when using the default value we may override it with a setting
-# tailored specifically tuwunel.
+# tailored specifically matron-server.
 #
 #rocksdb_bottommost_compression_level = 32767
 
@@ -1068,13 +1068,13 @@
 # 0 = AbsoluteConsistency
 # 1 = TolerateCorruptedTailRecords (default)
 # 2 = PointInTime (use me if trying to recover)
-# 3 = SkipAnyCorruptedRecord (you now voided your tuwunel warranty)
+# 3 = SkipAnyCorruptedRecord (you now voided your matron-server warranty)
 #
 # For more information on these modes, see:
 # https://github.com/facebook/rocksdb/wiki/WAL-Recovery-Modes
 #
 # For more details on recovering a corrupt database, see:
-# https://tuwunel.chat/troubleshooting.html#database-corruption
+# https://matron.chat/troubleshooting.html#database-corruption
 #
 #rocksdb_recovery_mode = 1
 
@@ -1114,7 +1114,7 @@
 # - Disabling repair mode and restarting the server is recommended after
 #   running the repair.
 #
-# See https://tuwunel.chat/troubleshooting.html#database-corruption for more details on recovering a corrupt database.
+# See https://matron.chat/troubleshooting.html#database-corruption for more details on recovering a corrupt database.
 #
 #rocksdb_repair = false
 
@@ -1141,7 +1141,7 @@
 # Enables RocksDB compaction. You should never ever have to set this
 # option to false. If you for some reason find yourself needing to use
 # this option as part of troubleshooting or a bug, please reach out to us
-# in the tuwunel Matrix room with information and details.
+# in the matron-server Matrix room with information and details.
 #
 # Disabling compaction will lead to a significantly bloated and
 # explosively large database, gradually poor performance, unnecessarily
@@ -1192,7 +1192,7 @@
 # purposes such as recovering/recreating your admin room, or inviting
 # yourself back.
 #
-# See https://tuwunel.chat/troubleshooting.html#lost-access-to-admin-room
+# See https://matron.chat/troubleshooting.html#lost-access-to-admin-room
 # for other ways to get back into your admin room.
 #
 # Once this password is unset, all sessions will be logged out for
@@ -1232,7 +1232,7 @@
 
 # Allow local (your server only) presence updates/requests.
 #
-# Note that presence on tuwunel is very fast unlike Synapse's. If using
+# Note that presence on matron-server is very fast unlike Synapse's. If using
 # outgoing presence, this MUST be enabled.
 #
 #allow_local_presence = true
@@ -1241,7 +1241,7 @@
 #
 # This option receives presence updates from other servers, but does not
 # send any unless `allow_outgoing_presence` is true. Note that presence on
-# tuwunel is very fast unlike Synapse's.
+# matron-server is very fast unlike Synapse's.
 #
 #allow_incoming_presence = true
 
@@ -1249,7 +1249,7 @@
 #
 # This option sends presence updates to other servers, but does not
 # receive any unless `allow_incoming_presence` is true. Note that presence
-# on tuwunel is very fast unlike Synapse's. If using outgoing presence,
+# on matron-server is very fast unlike Synapse's. If using outgoing presence,
 # you MUST enable `allow_local_presence` as well.
 #
 #allow_outgoing_presence = true
@@ -1314,8 +1314,8 @@
 #
 #typing_client_timeout_max_s = 45
 
-# Set this to true for tuwunel to compress HTTP response bodies using
-# zstd. This option does nothing if tuwunel was not built with
+# Set this to true for matron-server to compress HTTP response bodies using
+# zstd. This option does nothing if matron-server was not built with
 # `zstd_compression` feature. Please be aware that enabling HTTP
 # compression may weaken TLS. Most users should not need to enable this.
 # See https://breachattack.com/ and https://wikipedia.org/wiki/BREACH
@@ -1323,8 +1323,8 @@
 #
 #zstd_compression = false
 
-# Set this to true for tuwunel to compress HTTP response bodies using
-# gzip. This option does nothing if tuwunel was not built with
+# Set this to true for matron-server to compress HTTP response bodies using
+# gzip. This option does nothing if matron-server was not built with
 # `gzip_compression` feature. Please be aware that enabling HTTP
 # compression may weaken TLS. Most users should not need to enable this.
 # See https://breachattack.com/ and https://wikipedia.org/wiki/BREACH before
@@ -1335,8 +1335,8 @@
 #
 #gzip_compression = false
 
-# Set this to true for tuwunel to compress HTTP response bodies using
-# brotli. This option does nothing if tuwunel was not built with
+# Set this to true for matron-server to compress HTTP response bodies using
+# brotli. This option does nothing if matron-server was not built with
 # `brotli_compression` feature. Please be aware that enabling HTTP
 # compression may weaken TLS. Most users should not need to enable this.
 # See https://breachattack.com/ and https://wikipedia.org/wiki/BREACH
@@ -1385,7 +1385,7 @@
 
 # Check consistency of the media directory at startup:
 # 1. When `media_compat_file_link` is enabled, this check will upgrade
-#    media when switching back and forth between Conduit and tuwunel. Both
+#    media when switching back and forth between Conduit and matron-server. Both
 #    options must be enabled to handle this.
 # 2. When media is deleted from the directory, this check will also delete
 #    its database entry.
@@ -1403,7 +1403,7 @@
 # Otherwise setting this to false reduces filesystem clutter and overhead
 # for managing these symlinks in the directory. This is now disabled by
 # default. You may still return to upstream Conduit but you have to run
-# tuwunel at least once with this set to true and allow the
+# matron-server at least once with this set to true and allow the
 # media_startup_check to take place before shutting down to return to
 # Conduit.
 #
@@ -1456,7 +1456,7 @@
 #
 #store_media_on_providers = []
 
-# Vector list of regex patterns of server names that tuwunel will refuse
+# Vector list of regex patterns of server names that matron-server will refuse
 # to download remote media from.
 #
 # example: ["badserver\.tld$", "badphrase", "19dollarfortnitecards"]
@@ -1501,7 +1501,7 @@
 #forbidden_remote_room_directory_server_names = []
 
 # Vector list of IPv4 and IPv6 CIDR ranges / subnets *in quotes* that you
-# do not want tuwunel to send outbound requests to. Defaults to
+# do not want matron-server to send outbound requests to. Defaults to
 # RFC1918, unroutable, loopback, multicast, and testnet addresses for
 # security.
 #
@@ -1677,34 +1677,34 @@
 
 # Allow admins to enter commands in rooms other than "#admins" (admin
 # room) by prefixing your message with "\!admin" or "\\!admin" followed up
-# a normal tuwunel admin command. The reply will be publicly visible to
+# a normal matron-server admin command. The reply will be publicly visible to
 # the room, originating from the sender.
 #
-# example: \\!admin debug ping puppygock.gay
+# example: \\!admin debug ping example.com
 #
 #admin_escape_commands = true
 
-# Automatically activate the tuwunel admin room console / CLI on
-# startup. This option can also be enabled with `--console` tuwunel
+# Automatically activate the matron-server admin room console / CLI on
+# startup. This option can also be enabled with `--console` matron-server
 # argument.
 #
 #admin_console_automatic = false
 
 # List of admin commands to execute on startup.
 #
-# This option can also be configured with the `--execute` tuwunel
+# This option can also be configured with the `--execute` matron-server
 # argument and can take standard shell commands and environment variables
 #
-# For example: `./tuwunel --execute "server admin-notice tuwunel has
+# For example: `./matron-server --execute "server admin-notice matron-server has
 # started up at $(date)"`
 #
-# example: admin_execute = ["debug ping puppygock.gay", "debug echo hi"]`
+# example: admin_execute = ["debug ping example.com", "debug echo hi"]`
 #
 #admin_execute = []
 
 # Ignore errors in startup commands.
 #
-# If false, tuwunel will error and fail to start if an admin execute
+# If false, matron-server will error and fail to start if an admin execute
 # command (`--execute` / `admin_execute`) fails.
 #
 #admin_execute_errors_ignore = false
@@ -1725,7 +1725,7 @@
 # The default room tag to apply on the admin room.
 #
 # On some clients like Element, the room tag "m.server_notice" is a
-# special pinned room at the very bottom of your room list. The tuwunel
+# special pinned room at the very bottom of your room list. The matron-server
 # admin room can be pinned here so you always have an easy-to-access
 # shortcut dedicated to your admin room.
 #
@@ -1750,7 +1750,7 @@
 #federate_admin_room = true
 
 # Sentry.io crash/panic reporting, performance monitoring/metrics, etc.
-# This is NOT enabled by default. tuwunel's default Sentry reporting
+# This is NOT enabled by default. matron-server's default Sentry reporting
 # endpoint domain is `o4509498990067712.ingest.us.sentry.io`.
 #
 #sentry = false
@@ -1759,7 +1759,7 @@
 #
 #sentry_endpoint = ""
 
-# Report your tuwunel server_name in Sentry.io crash reports and
+# Report your matron-server server_name in Sentry.io crash reports and
 # metrics.
 #
 #sentry_send_server_name = false
@@ -1796,7 +1796,7 @@
 # Enable the tokio-console. This option is only relevant to developers.
 #
 #	For more information, see:
-# https://tuwunel.chat/development.html#debugging-with-tokio-console
+# https://matron.chat/development.html#debugging-with-tokio-console
 #
 #tokio_console = false
 
@@ -2223,7 +2223,7 @@
 #
 #admin_base_dn =
 
-# The LDAP search filter to find administrative users for tuwunel.
+# The LDAP search filter to find administrative users for matron-server.
 #
 # If left blank, administrative state must be configured manually for each
 # user.
@@ -2231,7 +2231,7 @@
 # You can use the variable `{username}` that will be replaced by the
 # entered username for more complex filters.
 #
-# example: "(objectClass=tuwunelAdmin)" or "(uid={username})"
+# example: "(objectClass=matron-serverAdmin)" or "(uid={username})"
 #
 #admin_filter =
 
@@ -2347,7 +2347,7 @@
 # This takes priority over "client_secret" first, and falls back to
 # "client_secret" if invalid or failed to open.
 #
-# example: "/etc/tuwunel/.client_secret"
+# example: "/etc/matron-server/.client_secret"
 #
 #client_secret_file =
 
@@ -2362,7 +2362,7 @@
 #issuer_url =
 
 # The callback URL configured when registering the OAuth application with
-# the provider. Tuwunel's callback URL must be strictly formatted exactly
+# the provider. Matron Server's callback URL must be strictly formatted exactly
 # as instructed. The URL host must point directly at the matrix server and
 # use the following path:
 # `/_matrix/client/unstable/login/sso/callback/<client_id>` where
@@ -2415,7 +2415,7 @@
 #scope = []
 
 # Optional list of userinfo claims which shape and restrict the way we
-# compute a Matrix UserId for new registrations. Reviewing Tuwunel's
+# compute a Matrix UserId for new registrations. Reviewing Matron Server's
 # documentation will be necessary for a complete description in detail. An
 # empty array imposes no restriction here, avoiding generated fallbacks as
 # much as possible.

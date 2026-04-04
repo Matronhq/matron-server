@@ -8,7 +8,7 @@ use ruma::{
 		tag::{TagEvent, TagEventContent},
 	},
 };
-use tuwunel_core::Result;
+use matron_server_core::Result;
 
 use crate::Ruma;
 

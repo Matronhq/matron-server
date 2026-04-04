@@ -16,7 +16,7 @@ use ruma::{
 	},
 	presence::PresenceState,
 };
-use tuwunel_core::{Err, Error, Result, err};
+use matron_server_core::{Err, Error, Result, err};
 
 use crate::Ruma;
 

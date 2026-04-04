@@ -6,7 +6,7 @@ use ruma::{
 	api::federation::transactions::edu::{Edu, TypingContent},
 };
 use tokio::sync::{RwLock, broadcast};
-use tuwunel_core::{
+use matron_server_core::{
 	Result, Server, debug_info, trace,
 	utils::{self, IterStream},
 };

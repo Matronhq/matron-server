@@ -9,7 +9,7 @@ use ruma::{
 	api::client::device::Device, events::AnyToDeviceEvent, serde::Raw,
 };
 use serde_json::json;
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, implement,
 	utils::{
 		self, ReadyExt,
@@ -17,7 +17,7 @@ use tuwunel_core::{
 		time::{duration_since_epoch, timepoint_from_epoch, timepoint_from_now},
 	},
 };
-use tuwunel_database::{Deserialized, Ignore, Interfix, Json, Map};
+use matron_server_database::{Deserialized, Ignore, Interfix, Json, Map};
 
 /// generated device ID length
 const DEVICE_ID_LENGTH: usize = 10;

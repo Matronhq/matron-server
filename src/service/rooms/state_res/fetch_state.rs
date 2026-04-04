@@ -2,7 +2,7 @@ use ruma::{
 	UserId,
 	events::{StateEventType, room::member::MembershipState},
 };
-use tuwunel_core::{
+use matron_server_core::{
 	Result, err,
 	matrix::{Event, StateKey},
 };

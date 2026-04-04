@@ -5,11 +5,11 @@ use futures::{FutureExt, StreamExt, TryFutureExt, stream::FuturesOrdered};
 use ruma::{
 	OwnedRoomId, OwnedServerName, RoomId, UInt, UserId, api::client::space::get_hierarchy,
 };
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, debug_error,
 	utils::{future::TryExtExt, option::OptionExt, stream::IterStream},
 };
-use tuwunel_service::{
+use matron_server_service::{
 	Services,
 	rooms::{
 		short::ShortRoomId,

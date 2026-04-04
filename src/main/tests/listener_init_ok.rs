@@ -6,8 +6,8 @@ use tokio::{
 	select,
 	time::{Duration, sleep},
 };
-use tuwunel::{Args, Runtime, Server};
-use tuwunel_core::{Err, Result};
+use matron_server::{Args, Runtime, Server};
+use matron_server_core::{Err, Result};
 
 #[test]
 fn listener_init_ok() -> Result {
@@ -22,7 +22,7 @@ fn listener_init_ok() -> Result {
 		let result = runtime.block_on(async {
 			select! {
 				() = sleep(Duration::from_secs(5)) => Ok(()),
-				_ = tuwunel::async_exec(&server) => Err!("Premature server shutdown"),
+				_ = matron_server::async_exec(&server) => Err!("Premature server shutdown"),
 			}
 		});
 

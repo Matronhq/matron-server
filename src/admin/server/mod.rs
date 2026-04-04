@@ -3,7 +3,7 @@ mod commands;
 use std::path::PathBuf;
 
 use clap::Subcommand;
-use tuwunel_core::Result;
+use matron_server_core::Result;
 
 use crate::admin_command_dispatch;
 
@@ -36,7 +36,7 @@ pub(super) enum ServerCommand {
 	/// - Print database memory usage statistics
 	MemoryUsage,
 
-	/// - Clears all of Tuwunel's caches
+	/// - Clears all of Matron Server's caches
 	ClearCaches,
 
 	/// - Performs an online backup of the database (only available for RocksDB

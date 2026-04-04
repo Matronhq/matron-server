@@ -1,8 +1,8 @@
 #![expect(dead_code)]
 
 use ruma::{OwnedRoomId, OwnedUserId, RoomId, UserId};
-use tuwunel_core::{Err, Result, err};
-use tuwunel_service::Services;
+use matron_server_core::{Err, Result, err};
+use matron_server_service::Services;
 
 pub(crate) fn escape_html(s: &str) -> String {
 	s.replace('&', "&amp;")

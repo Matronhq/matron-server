@@ -4,9 +4,9 @@ Information about developing the project. If you are only interested in using
 it, you can safely ignore this page. If you plan on contributing, see the
 [contributor's guide](./contributing.md).
 
-## Tuwunel project layout
+## Matron Server project layout
 
-Tuwunel uses a collection of sub-crates, packages, or workspace members
+Matron Server uses a collection of sub-crates, packages, or workspace members
 that indicate what each general area of code is for. All of the workspace
 members are under `src/`. The workspace definition is at the top level / root
 `Cargo.toml`.
@@ -14,11 +14,11 @@ members are under `src/`. The workspace definition is at the top level / root
 The crate names are generally self-explanatory:
 - `admin` is the admin room
 - `api` is the HTTP API, Matrix C-S and S-S endpoints, etc
-- `core` is core Tuwunel functionality like config loading, error definitions,
+- `core` is core Matron Server functionality like config loading, error definitions,
 global utilities, logging infrastructure, etc
 - `database` is RocksDB methods, helpers, RocksDB config, and general database definitions,
 utilities, or functions
-- `macros` are Tuwunel Rust [macros][macros] like general helper macros, logging
+- `macros` are Matron Server Rust [macros][macros] like general helper macros, logging
 and error handling macros, and [syn][syn] and [procedural macros][proc-macro]
 used for admin room commands and others
 - `main` is the "primary" sub-crate. This is where the `main()` function lives,
@@ -35,7 +35,7 @@ if you truly find yourself needing to, we recommend reaching out to us in
 the Matrix room for discussions about it beforehand.
 
 The primary inspiration for this design was apart of hot reloadable development,
-to support "Tuwunel as a library" where specific parts can simply be swapped out.
+to support "Matron Server as a library" where specific parts can simply be swapped out.
 There is evidence Conduit wanted to go this route too as `axum` is technically an
 optional feature in Conduit, and can be compiled without the binary or axum library
 for handling inbound web requests; but it was never completed or worked.
@@ -52,7 +52,7 @@ the said workspace crate(s) must define the feature there in its `Cargo.toml`.
 
 So, if this is adding a feature to the API such as `woof`, you define the feature
 in the `api` crate's `Cargo.toml` as `woof = []`. The feature definition in `main`'s
-`Cargo.toml` will be `woof = ["tuwunel-api/woof"]`.
+`Cargo.toml` will be `woof = ["matron-server-api/woof"]`.
 
 The rationale for this is due to Rust / Cargo not supporting
 ["workspace level features"][9], we must make a choice of; either scattering
@@ -68,10 +68,10 @@ do this if Rust supported workspace-level features to begin with.
 
 ## List of forked dependencies
 
-During Tuwunel development, we have had to fork
+During Matron Server development, we have had to fork
 some dependencies to support our use-cases in some areas. This ranges from
 things said upstream project won't accept for any reason, faster-paced
-development (unresponsive or slow upstream), Tuwunel-specific usecases, or
+development (unresponsive or slow upstream), Matron Server-specific usecases, or
 lack of time to upstream some things.
 
 - [ruma/ruma][1]: <https://github.com/matrix-construct/ruma> - various performance
@@ -84,7 +84,7 @@ builds seem to be broken on upstream, fixes some broken/suspicious code in
 places, additional safety measures, and support redzones for Valgrind
 - [zyansheep/rustyline-async][4]:
 <https://github.com/matrix-construct/rustyline-async> - tab completion callback and
-`CTRL+\` signal quit event for Tuwunel console CLI
+`CTRL+\` signal quit event for Matron Server console CLI
 - [rust-rocksdb/rust-rocksdb][5]:
 <https://github.com/matrix-construct/rust-rocksdb-zaidoon1> - [`@zaidoon1`][8]'s fork
 has quicker updates, more up to date dependencies, etc. Our fork fixes musl build
@@ -97,7 +97,7 @@ alongside other logging/metrics things
 ## Debugging with `tokio-console`
 
 [`tokio-console`][7] can be a useful tool for debugging and profiling. To make a
-`tokio-console`-enabled build of Tuwunel, enable the `tokio_console` feature,
+`tokio-console`-enabled build of Matron Server, enable the `tokio_console` feature,
 disable the default `release_max_log_level` feature, and set the `--cfg
 tokio_unstable` flag to enable experimental tokio APIs. A build might look like
 this:
@@ -109,7 +109,7 @@ RUSTFLAGS="--cfg tokio_unstable" cargo +nightly build \
     --features=systemd,element_hacks,gzip_compression,brotli_compression,zstd_compression,tokio_console
 ```
 
-You will also need to enable the `tokio_console` config option in Tuwunel when
+You will also need to enable the `tokio_console` config option in Matron Server when
 starting it. This was due to tokio-console causing gradual memory leak/usage
 if left enabled.
 

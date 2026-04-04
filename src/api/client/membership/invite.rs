@@ -2,7 +2,7 @@ use axum::extract::State;
 use axum_client_ip::InsecureClientIp;
 use futures::{FutureExt, join};
 use ruma::{api::client::membership::invite_user, events::room::member::MembershipState};
-use tuwunel_core::{Err, Result};
+use matron_server_core::{Err, Result};
 
 use super::banned_room_check;
 use crate::{Ruma, client::utils::invite_check};

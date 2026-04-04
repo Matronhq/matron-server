@@ -1,5 +1,5 @@
 use clap::Parser;
-use tuwunel_core::Result;
+use matron_server_core::Result;
 
 use crate::{
 	appservice::{self, AppserviceCommand},
@@ -15,7 +15,7 @@ use crate::{
 };
 
 #[derive(Debug, Parser)]
-#[command(name = "tuwunel", version = tuwunel_core::version())]
+#[command(name = "matron-server", version = matron_server_core::version())]
 pub(super) enum AdminCommand {
 	#[command(subcommand)]
 	/// - Commands for managing appservices

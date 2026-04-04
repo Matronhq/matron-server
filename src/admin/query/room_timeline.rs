@@ -1,7 +1,7 @@
 use clap::Subcommand;
 use futures::TryStreamExt;
 use ruma::OwnedRoomOrAliasId;
-use tuwunel_core::{PduCount, Result, utils::stream::TryTools};
+use matron_server_core::{PduCount, Result, utils::stream::TryTools};
 
 use crate::{admin_command, admin_command_dispatch};
 

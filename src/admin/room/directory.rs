@@ -1,7 +1,7 @@
 use clap::Subcommand;
 use futures::StreamExt;
 use ruma::OwnedRoomId;
-use tuwunel_core::Result;
+use matron_server_core::Result;
 
 use crate::{Context, PAGE_SIZE, get_room_info};
 

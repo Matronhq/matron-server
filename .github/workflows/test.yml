@@ -307,12 +307,12 @@ jobs:
       artifact: >
         {
           "rust-sdk-integ": {
-            "src": "/var/log/tuwunel.log",
-            "dst": "rust-sdk-integ.tuwunel.log",
+            "src": "/var/log/matron-server.log",
+            "dst": "rust-sdk-integ.matron-server.log",
           },
           "rust-sdk-valgrind": {
-            "src": "/var/log/tuwunel.log",
-            "dst": "rust-sdk-valgrind.tuwunel.log",
+            "src": "/var/log/matron-server.log",
+            "dst": "rust-sdk-valgrind.matron-server.log",
           }
         }
       excludes: >

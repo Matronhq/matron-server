@@ -1,5 +1,5 @@
 use ruma::{UserId, events::TimelineEventType};
-use tuwunel_core::{
+use matron_server_core::{
 	Result, error, implement,
 	matrix::{
 		event::Event,

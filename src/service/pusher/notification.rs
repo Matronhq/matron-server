@@ -1,9 +1,9 @@
 use ruma::{RoomId, UserId};
-use tuwunel_core::{
+use matron_server_core::{
 	Result, implement, trace,
 	utils::stream::{ReadyExt, TryIgnore},
 };
-use tuwunel_database::{Deserialized, Interfix};
+use matron_server_database::{Deserialized, Interfix};
 
 #[implement(super::Service)]
 #[tracing::instrument(level = "debug", skip(self))]

@@ -18,7 +18,7 @@ run () {
 	fi
 }
 
-tuwunel () {
+matron-server () {
 	UWU_OPTS=$@
 	rm -rf /tmp/uwu_smoketest.db
 	echo -e "[global]\nserver_name = \"localhost\"\ndatabase_path = \"/tmp/uwu_smoketest.db\"" > /tmp/uwu_smoketest.toml
@@ -38,8 +38,8 @@ element () {
 		run cargo "$TOOLCHAIN" build $ELEMENT_OPTS --all-targets
 		run cargo "$TOOLCHAIN" test $ELEMENT_OPTS --all-targets
 		run cargo "$TOOLCHAIN" bench $ELEMENT_OPTS --all-targets
-		run cargo "$TOOLCHAIN" run $ELEMENT_OPTS --bin tuwunel -- -V
-		run tuwunel "$TOOLCHAIN" run $ELEMENT_OPTS --bin tuwunel
+		run cargo "$TOOLCHAIN" run $ELEMENT_OPTS --bin matron-server -- -V
+		run matron-server "$TOOLCHAIN" run $ELEMENT_OPTS --bin matron-server
 	fi
 }
 

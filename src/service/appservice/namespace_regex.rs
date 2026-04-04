@@ -1,6 +1,6 @@
 use regex::RegexSet;
 use ruma::api::appservice::Namespace;
-use tuwunel_core::Result;
+use matron_server_core::Result;
 
 /// Compiled regular expressions for a namespace
 #[derive(Clone, Debug)]

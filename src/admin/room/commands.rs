@@ -1,6 +1,6 @@
 use futures::{FutureExt, StreamExt};
 use ruma::OwnedRoomId;
-use tuwunel_core::{Err, Result, utils::FutureBoolExt};
+use matron_server_core::{Err, Result, utils::FutureBoolExt};
 
 use crate::{PAGE_SIZE, admin_command, get_room_info};
 

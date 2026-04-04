@@ -1,3 +1,3 @@
 # Deploying
 
-This chapter describes various ways to deploy Tuwunel.
+This chapter describes various ways to deploy Matron Server.

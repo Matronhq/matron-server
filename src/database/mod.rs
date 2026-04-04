@@ -2,9 +2,9 @@
 
 extern crate rust_rocksdb as rocksdb;
 
-tuwunel_core::mod_ctor! {}
-tuwunel_core::mod_dtor! {}
-tuwunel_core::rustc_flags_capture! {}
+matron_server_core::mod_ctor! {}
+matron_server_core::mod_dtor! {}
+matron_server_core::rustc_flags_capture! {}
 
 mod cork;
 mod de;
@@ -24,7 +24,7 @@ pub(crate) mod util;
 use std::{ops::Index, sync::Arc};
 
 use log as _;
-use tuwunel_core::{Result, Server, err};
+use matron_server_core::{Result, Server, err};
 
 pub use self::{
 	de::{Ignore, IgnoreAll},

@@ -32,7 +32,7 @@ let
       "gzip_compression"
       "zstd_compression"
       # complement doesn't need hot reloading
-      "tuwunel_mods"
+      "matron_server_mods"
       # complement doesn't have URL preview media tests
       "url_preview"
     ];
@@ -42,13 +42,13 @@ let
     set -euxo pipefail
 
     ${lib.getExe' coreutils "env"} \
-      TUWUNEL_SERVER_NAME="$SERVER_NAME" \
+      MATRON_SERVER_SERVER_NAME="$SERVER_NAME" \
       ${lib.getExe main'}
   '';
 in
 
 dockerTools.buildImage {
-  name = "complement-tuwunel";
+  name = "complement-matron-server";
   tag = "main";
 
   copyToRoot = buildEnv {
@@ -83,9 +83,9 @@ dockerTools.buildImage {
         [ ];
 
     Env = [
-      "TUWUNEL_TLS__KEY=${./private_key.key}"
-      "TUWUNEL_TLS__CERTS=${./certificate.crt}"
-      "TUWUNEL_CONFIG=${./config.toml}"
+      "MATRON_SERVER_TLS__KEY=${./private_key.key}"
+      "MATRON_SERVER_TLS__CERTS=${./certificate.crt}"
+      "MATRON_SERVER_CONFIG=${./config.toml}"
       "RUST_BACKTRACE=full"
     ];
 

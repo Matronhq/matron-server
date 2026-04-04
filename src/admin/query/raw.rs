@@ -4,7 +4,7 @@ use base64::prelude::*;
 use clap::Subcommand;
 use futures::{FutureExt, StreamExt, TryStreamExt};
 use tokio::time::Instant;
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, apply, at, err, is_zero,
 	itertools::Itertools,
 	utils::{
@@ -14,8 +14,8 @@ use tuwunel_core::{
 		string::EMPTY,
 	},
 };
-use tuwunel_database::{KeyVal, Map};
-use tuwunel_service::Services;
+use matron_server_database::{KeyVal, Map};
+use matron_server_service::Services;
 
 use crate::{admin_command, admin_command_dispatch};
 
@@ -185,7 +185,7 @@ pub(super) async fn raw_compact(
 	parallelism: Option<usize>,
 	exhaustive: bool,
 ) -> Result {
-	use tuwunel_database::compact::Options;
+	use matron_server_database::compact::Options;
 
 	let maps = with_maps_or(maps.as_deref(), self.services)?;
 

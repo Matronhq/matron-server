@@ -3,8 +3,8 @@ pub(crate) mod tester;
 
 use clap::Subcommand;
 use ruma::{OwnedEventId, OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName};
-use tuwunel_core::Result;
-use tuwunel_service::rooms::short::ShortRoomId;
+use matron_server_core::Result;
+use matron_server_service::rooms::short::ShortRoomId;
 
 use self::tester::TesterCommand;
 use crate::admin_command_dispatch;
@@ -32,13 +32,13 @@ pub(super) enum DebugCommand {
 	/// the command.
 	ParsePdu,
 
-	/// - Retrieve and print a PDU by EventID from the tuwunel database
+	/// - Retrieve and print a PDU by EventID from the matron-server database
 	GetPdu {
 		/// An event ID (a $ followed by the base64 reference hash)
 		event_id: OwnedEventId,
 	},
 
-	/// - Retrieve and print a PDU by PduId from the tuwunel database
+	/// - Retrieve and print a PDU by PduId from the matron-server database
 	GetShortPdu {
 		/// Shortroomid integer
 		shortroomid: ShortRoomId,
@@ -170,7 +170,7 @@ pub(super) enum DebugCommand {
 		server_name: OwnedServerName,
 	},
 
-	/// - Runs a server name through tuwunel's true destination resolution
+	/// - Runs a server name through matron-server's true destination resolution
 	///   process
 	///
 	/// Useful for debugging well-known issues

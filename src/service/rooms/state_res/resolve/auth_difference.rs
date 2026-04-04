@@ -2,7 +2,7 @@ use std::borrow::Borrow;
 
 use futures::{FutureExt, Stream};
 use ruma::EventId;
-use tuwunel_core::utils::stream::{IterStream, ReadyExt};
+use matron_server_core::utils::stream::{IterStream, ReadyExt};
 
 use super::AuthSet;
 

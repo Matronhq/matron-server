@@ -1,4 +1,4 @@
-# Tuwunel 1.5.1
+# Matron Server 1.5.1
 
 March 6, 2026
 
@@ -46,7 +46,7 @@ March 6, 2026
 
 - Thank you @Lamby777 for removing an errant `version` field in the docker-compose example. (299)
 
-- Thank you @cornerot for updating the docker-compose with-traefik which still said Conduit instead of Tuwunel after all this time. (#308)
+- Thank you @cornerot for updating the docker-compose with-traefik which still said Conduit instead of Matron Server after all this time. (#308)
 
 - Thank you @exodrifter for fixing errors and typos in the MatrixRTC documentation (#343) based on a report by @RhenCloud (#338).
 
@@ -60,13 +60,13 @@ March 6, 2026
 
 - Thanks to report (#302) by @data-niklas whitespace in the configured `client_secret_file` is now properly ignored thanks to @dasha-uwu (6f5ae17).
 
-- After @Giwayume reported in (#303) that URL previews failed for some sites, an investigation by @dasha-uwu discovered Tuwunel's User-Agent header required some adjustment.
+- After @Giwayume reported in (#303) that URL previews failed for some sites, an investigation by @dasha-uwu discovered Matron Server's User-Agent header required some adjustment.
 
 - @dasha-uwu refactored the Unix socket listener with main-branch testing by @VlaDexa (#310) and follow-up fixes in (488bd62).
 
 - @jonathanmajh reported in (#315) and @wmstens simultaneously reported in (#318) that admin status was not granted to the server's first user when registering with SSO/OIDC. This was fixed by (e74186a).
 
-- After a report by @tcyrus in (#328) that the RPM postinst script is not properly creating the tuwunel user. This was fixed by @x86pup in (5a55f84).
+- After a report by @tcyrus in (#328) that the RPM postinst script is not properly creating the matron-server user. This was fixed by @x86pup in (5a55f84).
 
 - Thank you @cloudrac3r for reporting in (#330) that events were being unnecessarily sent to some appservices. This was fixed by @dasha-uwu in (d073e17).
 

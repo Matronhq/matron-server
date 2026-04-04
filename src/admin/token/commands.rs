@@ -1,7 +1,7 @@
 use futures::StreamExt;
-use tuwunel_core::{Result, utils};
-use tuwunel_macros::admin_command;
-use tuwunel_service::registration_tokens::TokenExpires;
+use matron_server_core::{Result, utils};
+use matron_server_macros::admin_command;
+use matron_server_service::registration_tokens::TokenExpires;
 
 #[admin_command]
 pub(super) async fn issue(

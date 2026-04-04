@@ -4,7 +4,7 @@ use futures::{
 	future::{join, join3, try_join3},
 };
 use ruma::{OwnedEventId, UserId, api::client::context::get_context, events::StateEventType};
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Event, Result, at, debug_warn, err, ref_at,
 	utils::{
 		IterStream,
@@ -13,7 +13,7 @@ use tuwunel_core::{
 		stream::{BroadbandExt, ReadyExt, TryIgnore, WidebandExt},
 	},
 };
-use tuwunel_service::rooms::{lazy_loading, lazy_loading::Options, short::ShortStateKey};
+use matron_server_service::rooms::{lazy_loading, lazy_loading::Options, short::ShortStateKey};
 
 use crate::{
 	Ruma,

@@ -6,7 +6,7 @@ use ruma::{
 	RoomId,
 	api::{client::error::ErrorKind, federation::authorization::get_event_authorization},
 };
-use tuwunel_core::{
+use matron_server_core::{
 	Error, Result,
 	utils::stream::{BroadbandExt, ReadyExt},
 };

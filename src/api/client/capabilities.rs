@@ -12,7 +12,7 @@ use ruma::{
 	},
 };
 use serde_json::json;
-use tuwunel_core::Result;
+use matron_server_core::Result;
 
 use crate::Ruma;
 

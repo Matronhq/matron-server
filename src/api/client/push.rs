@@ -19,7 +19,7 @@ use ruma::{
 		RemovePushRuleError, Ruleset,
 	},
 };
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Error, Result, at, err,
 	matrix::{Event, PduId},
 	utils::{
@@ -27,7 +27,7 @@ use tuwunel_core::{
 		string::to_small_string,
 	},
 };
-use tuwunel_service::Services;
+use matron_server_service::Services;
 
 use crate::Ruma;
 

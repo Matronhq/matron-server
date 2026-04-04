@@ -9,7 +9,7 @@ use std::time::SystemTime;
 
 use ipaddress::IPAddress;
 use serde::Serialize;
-use tuwunel_core::{Err, Result, debug, err, implement};
+use matron_server_core::{Err, Result, debug, err, implement};
 use url::Url;
 
 use super::Service;
@@ -127,7 +127,7 @@ async fn request_url_preview(&self, url: &Url) -> Result<UrlPreviewData> {
 pub async fn download_image(&self, url: &str) -> Result<UrlPreviewData> {
 	use image::ImageReader;
 	use ruma::Mxc;
-	use tuwunel_core::utils::random_string;
+	use matron_server_core::utils::random_string;
 
 	let image = self
 		.services

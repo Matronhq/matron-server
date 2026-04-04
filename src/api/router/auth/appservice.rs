@@ -1,6 +1,6 @@
 use ruma::{OwnedUserId, UserId};
-use tuwunel_core::{Err, Result};
-use tuwunel_service::{Services, appservice::RegistrationInfo};
+use matron_server_core::{Err, Result};
+use matron_server_service::{Services, appservice::RegistrationInfo};
 
 use super::{Auth, Request};
 

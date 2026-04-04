@@ -16,7 +16,7 @@ use ruma::{
 	events::room::member::MembershipState,
 };
 use tokio::time::{Instant, timeout_at};
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, debug,
 	debug::INFO_SPAN_LEVEL,
 	debug_warn,
@@ -25,7 +25,7 @@ use tuwunel_core::{
 	trace,
 	utils::{TryFutureExtExt, result::FlatOk},
 };
-use tuwunel_service::{
+use matron_server_service::{
 	Services,
 	sync::{Connection, into_connection_key},
 };

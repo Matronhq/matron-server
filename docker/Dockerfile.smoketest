@@ -4,25 +4,25 @@ FROM input AS smoke-version
 COPY --link --from=input . .
 RUN <<EOF
     set -eux
-    tuwunel -V
-    version=$(tuwunel -V)
+    matron-server -V
+    version=$(matron-server -V)
     /bin/test -n "$version"
 EOF
 
 
 FROM input AS smoke-startup
 COPY --link --from=input . .
-ENV TUWUNEL_LOG="info"
-ENV TUWUNEL_DATABASE_PATH="/tmp/smoketest.db"
+ENV MATRON_SERVER_LOG="info"
+ENV MATRON_SERVER_DATABASE_PATH="/tmp/smoketest.db"
 RUN <<EOF
     set -eux
-    tuwunel \
+    matron-server \
         -Otest='["smoke"]' \
         -Oserver_name=\"localhost\" \
-        -Odatabase_path=\"${TUWUNEL_DATABASE_PATH}\" \
+        -Odatabase_path=\"${MATRON_SERVER_DATABASE_PATH}\" \
         -Oerror_on_unknown_config_opts=true
 
-    rm -rf "${TUWUNEL_DATABASE_PATH}"
+    rm -rf "${MATRON_SERVER_DATABASE_PATH}"
 EOF
 
 
@@ -31,8 +31,8 @@ ARG leak_check="no"
 ARG undef_value_errors="no"
 ARG db_pool_max_workers=128
 COPY --link --from=input . .
-ENV TUWUNEL_LOG="info"
-ENV TUWUNEL_DATABASE_PATH="/tmp/smoketest.db"
+ENV MATRON_SERVER_LOG="info"
+ENV MATRON_SERVER_DATABASE_PATH="/tmp/smoketest.db"
 RUN <<EOF
     set -eux
     ulimit -n 65535
@@ -41,31 +41,31 @@ RUN <<EOF
         --undef-value-errors=${undef_value_errors} \
         --exit-on-first-error=yes \
         --error-exitcode=1 \
-        tuwunel \
+        matron-server \
             -Otest='["smoke"]' \
             -Oserver_name=\"localhost\" \
-            -Odatabase_path=\"${TUWUNEL_DATABASE_PATH}\" \
+            -Odatabase_path=\"${MATRON_SERVER_DATABASE_PATH}\" \
             -Odb_pool_max_workers=${db_pool_max_workers} \
             -Oerror_on_unknown_config_opts=true
 
-    rm -rf "${TUWUNEL_DATABASE_PATH}"
+    rm -rf "${MATRON_SERVER_DATABASE_PATH}"
 EOF
 
 
 FROM input AS smoke-perf
 COPY --link --from=input . .
-ENV TUWUNEL_LOG="error"
-ENV TUWUNEL_DATABASE_PATH="/tmp/smoketest.db"
+ENV MATRON_SERVER_LOG="error"
+ENV MATRON_SERVER_DATABASE_PATH="/tmp/smoketest.db"
 RUN <<EOF
     set -eux
     perf stat \
         -j \
         -ddd \
-        tuwunel \
+        matron-server \
             -Otest='["smoke"]' \
             -Oserver_name=\"localhost\" \
-            -Odatabase_path=\"${TUWUNEL_DATABASE_PATH}\" \
+            -Odatabase_path=\"${MATRON_SERVER_DATABASE_PATH}\" \
             -Oerror_on_unknown_config_opts=true
 
-    rm -rf "${TUWUNEL_DATABASE_PATH}"
+    rm -rf "${MATRON_SERVER_DATABASE_PATH}"
 EOF

@@ -6,8 +6,8 @@ use tokio::{
 	select,
 	time::{Duration, sleep},
 };
-use tuwunel::{Args, Runtime, Server};
-use tuwunel_core::Err;
+use matron_server::{Args, Runtime, Server};
+use matron_server_core::Err;
 
 #[test]
 #[should_panic = "I/O error: No such file or directory (os error 2)"]
@@ -23,7 +23,7 @@ fn listener_init_err() {
 		let server = Server::new(Some(&args), Some(&runtime)).unwrap();
 		let result = runtime.block_on(async {
 			select! {
-				result = tuwunel::async_exec(&server) => result,
+				result = matron_server::async_exec(&server) => result,
 				() = sleep(Duration::from_secs(10)) => Err!("Shutdown hanging after error."),
 			}
 		});

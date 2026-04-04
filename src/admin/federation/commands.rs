@@ -1,6 +1,6 @@
 use futures::StreamExt;
 use ruma::{OwnedRoomId, OwnedServerName, OwnedUserId};
-use tuwunel_core::{Err, Result};
+use matron_server_core::{Err, Result};
 
 use crate::{admin_command, get_room_info};
 

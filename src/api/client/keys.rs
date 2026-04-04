@@ -17,10 +17,10 @@ use ruma::{
 	serde::Raw,
 };
 use serde_json::json;
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, debug, debug_error, debug_warn, err, result::NotFound, utils::json,
 };
-use tuwunel_service::{Services, users::parse_master_key};
+use matron_server_service::{Services, users::parse_master_key};
 
 use crate::{Ruma, router::auth_uiaa};
 

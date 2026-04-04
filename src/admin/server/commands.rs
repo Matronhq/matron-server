@@ -1,7 +1,7 @@
 use std::{fmt::Write, path::PathBuf, sync::Arc};
 
 use futures::TryStreamExt;
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, info,
 	utils::{stream::IterStream, time},
 	warn,
@@ -68,7 +68,7 @@ pub(super) async fn list_features(&self, available: bool, enabled: bool, comma: 
 pub(super) async fn memory_usage(&self) -> Result {
 	let services_usage = self.services.memory_usage().await?;
 	let database_usage = self.services.db.engine.memory_usage()?;
-	let allocator_usage = tuwunel_core::alloc::memory_usage()
+	let allocator_usage = matron_server_core::alloc::memory_usage()
 		.map_or(String::new(), |s| format!("\nAllocator:\n{s}"));
 
 	self.write_str(&format!(
@@ -131,7 +131,7 @@ pub(super) async fn reload_mods(&self) -> Result {
 #[admin_command]
 #[cfg(unix)]
 pub(super) async fn restart(&self, force: bool) -> Result {
-	use tuwunel_core::utils::sys::current_exe_deleted;
+	use matron_server_core::utils::sys::current_exe_deleted;
 
 	if !force && current_exe_deleted() {
 		return Err!(

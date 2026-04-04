@@ -11,8 +11,8 @@ use ruma::{
 	RoomId,
 	api::client::sync::sync_events::v5::{ListId, request::ExtensionRoomConfig, response},
 };
-use tuwunel_core::{Result, apply, at, extract_variant, utils::BoolExt};
-use tuwunel_service::sync::Connection;
+use matron_server_core::{Result, apply, at, extract_variant, utils::BoolExt};
+use matron_server_service::sync::Connection;
 
 use super::{SyncInfo, Window, share_encrypted_room};
 

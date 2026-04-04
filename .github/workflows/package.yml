@@ -123,8 +123,8 @@ jobs:
       artifact: >
         {
           "static": {
-            "dst": "tuwunel.zst",
-            "src": "/usr/bin/tuwunel",
+            "dst": "matron-server.zst",
+            "src": "/usr/bin/matron-server",
             "mime": "application/zstd",
             "zstd": 11,
             "chmod": "a+x"
@@ -155,13 +155,13 @@ jobs:
       artifact: >
         {
           "docker": {
-            "dst": "tuwunel-docker.tar.gz",
+            "dst": "matron-server-docker.tar.gz",
             "img": true,
             "mime": "application/gzip",
             "gzip": 7
           },
           "oci": {
-            "dst": "tuwunel-oci.tar.zst",
+            "dst": "matron-server-oci.tar.zst",
             "runner": true,
             "mime": "application/zstd",
             "zstd": 11
@@ -195,16 +195,16 @@ jobs:
       artifact: >
         {
           "deb": {
-            "dst": "tuwunel.deb",
+            "dst": "matron-server.deb",
             "mime": "application/vnd.debian.binary-package"
           },
           "rpm": {
-            "dst": "tuwunel.rpm",
+            "dst": "matron-server.rpm",
             "mime": "application/x-rpm"
           },
           "nix": {
-            "dst": "tuwunel.nix.tar.zst",
-            "src": "/opt/tuwunel.nix.tar",
+            "dst": "matron-server.nix.tar.zst",
+            "src": "/opt/matron-server.nix.tar",
             "mime": "application/zstd",
             "zstd": 11
           }

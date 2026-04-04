@@ -21,7 +21,7 @@ use ruma::{
 		room::member::MembershipState,
 	},
 };
-use tuwunel_core::{
+use matron_server_core::{
 	Result, at, err, error, is_equal_to,
 	itertools::Itertools,
 	matrix::{Event, StateKey, pdu::PduCount},
@@ -31,7 +31,7 @@ use tuwunel_core::{
 		stream::BroadbandExt,
 	},
 };
-use tuwunel_service::{Services, sync::Room};
+use matron_server_service::{Services, sync::Room};
 
 use super::{super::load_timeline, Connection, SyncInfo, Window, WindowRoom};
 use crate::client::ignored_filter;

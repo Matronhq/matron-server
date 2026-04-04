@@ -1,19 +1,26 @@
 [Unit]
-Description=Tuwunel Matrix homeserver
+Description=Matron Server Matrix homeserver
 Wants=network-online.target
 After=network-online.target
-Documentation=https://tuwunel.chat/
+Documentation=https://matron.chat/
+RequiresMountsFor=/var/lib/private/matron-server
 
 [Service]
-User=tuwunel
-Group=tuwunel
-Type=notify
+DynamicUser=yes
+Type=notify-reload
+ReloadSignal=SIGUSR1
 
-Environment="TUWUNEL_CONFIG=/etc/tuwunel/tuwunel.toml"
+TTYPath=/dev/tty25
+DeviceAllow=char-tty
+StandardInput=tty-force
+StandardOutput=tty
+StandardError=journal+console
+TTYReset=yes
+# uncomment to allow buffer to be cleared every restart
+TTYVTDisallocate=no
 
-ExecStart=/usr/sbin/tuwunel
-
-ReadWritePaths=/var/lib/tuwunel /etc/tuwunel
+TTYColumns=120
+TTYRows=40
 
 AmbientCapabilities=
 CapabilityBoundingSet=
@@ -48,20 +55,27 @@ SystemCallArchitectures=native
 SystemCallFilter=@system-service @resources
 SystemCallFilter=~@clock @debug @module @mount @reboot @swap @cpu-emulation @obsolete @timer @chown @setuid @privileged @keyring @ipc
 SystemCallErrorNumber=EPERM
-#StateDirectory=tuwunel
+StateDirectory=matron-server
 
-RuntimeDirectory=tuwunel
+RuntimeDirectory=matron-server
 RuntimeDirectoryMode=0750
 
+Environment="MATRON_SERVER_CONFIG=/etc/matron-server/matron-server.toml"
+BindPaths=/var/lib/private/matron-server:/var/lib/conduwuit
+BindPaths=/var/lib/private/matron-server:/var/lib/private/conduwuit
+BindPaths=/var/lib/private/matron-server:/var/lib/matrix-conduit
+BindPaths=/var/lib/private/matron-server:/var/lib/private/matrix-conduit
+
+ExecStart=/usr/bin/matron-server
 Restart=on-failure
 RestartSec=5
 
-TimeoutStopSec=2m
-TimeoutStartSec=2m
+TimeoutStopSec=4m
+TimeoutStartSec=4m
 
 StartLimitInterval=1m
 StartLimitBurst=5
 
 [Install]
 WantedBy=multi-user.target
-Alias=matrix-tuwunel.service
+Alias=matrix-matron-server.service

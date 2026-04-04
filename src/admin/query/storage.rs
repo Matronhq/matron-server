@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use futures::{FutureExt, StreamExt, TryStreamExt, future::try_join};
-use tuwunel_core::{
+use matron_server_core::{
 	Result,
 	utils::{
 		result::LogErr,
@@ -9,7 +9,7 @@ use tuwunel_core::{
 		string::SplitInfallible,
 	},
 };
-use tuwunel_service::storage::CopyMode;
+use matron_server_service::storage::CopyMode;
 
 use crate::{admin_command, admin_command_dispatch};
 

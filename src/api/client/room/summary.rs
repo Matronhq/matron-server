@@ -10,11 +10,11 @@ use ruma::{
 	events::room::member::MembershipState,
 	room::{JoinRuleSummary, RoomSummary},
 };
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, debug_warn, trace,
 	utils::{IterStream, future::TryExtExt, option::OptionExt},
 };
-use tuwunel_service::Services;
+use matron_server_service::Services;
 
 use crate::{Ruma, RumaResponse};
 

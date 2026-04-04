@@ -9,7 +9,7 @@ use ruma::{
 	events::{AnyStateEvent, StateEventType, TimelineEventType, TimelineEventType::*},
 	serde::Raw,
 };
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, at,
 	matrix::{
 		event::{Event, Matches},
@@ -22,7 +22,7 @@ use tuwunel_core::{
 		stream::{BroadbandExt, TryIgnore, WidebandExt},
 	},
 };
-use tuwunel_service::{
+use matron_server_service::{
 	Services,
 	rooms::{
 		lazy_loading,
@@ -305,7 +305,7 @@ pub(crate) fn event_filter(item: PdusIterItem, filter: &RoomEventFilter) -> Opti
 	filter.matches(pdu).then_some(item)
 }
 
-#[cfg_attr(debug_assertions, tuwunel_core::ctor)]
+#[cfg_attr(debug_assertions, matron_server_core::ctor)]
 fn _is_sorted() {
 	debug_assert!(
 		IGNORED_MESSAGE_TYPES.is_sorted(),

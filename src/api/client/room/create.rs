@@ -37,13 +37,13 @@ use serde_json::{
 	json,
 	value::{RawValue, to_raw_value},
 };
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, debug_info, debug_warn, err, info,
 	matrix::{StateKey, pdu::PduBuilder, room_version},
 	utils::{BoolExt, option::OptionExt},
 	warn,
 };
-use tuwunel_service::{Services, appservice::RegistrationInfo, rooms::state::RoomMutexGuard};
+use matron_server_service::{Services, appservice::RegistrationInfo, rooms::state::RoomMutexGuard};
 
 use crate::{Ruma, client::utils::invite_check};
 

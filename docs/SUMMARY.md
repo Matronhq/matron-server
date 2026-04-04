@@ -26,4 +26,4 @@
   - [Contributing](contributing.md)
   - [Testing](development/testing.md)
   - [Hot Reloading ("Live" Development)](development/hot_reload.md)
-- [Tuwunel Community Code of Conduct](CODE_OF_CONDUCT.md)
+- [Matron Server Community Code of Conduct](CODE_OF_CONDUCT.md)

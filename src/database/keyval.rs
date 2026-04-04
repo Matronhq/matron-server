@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use tuwunel_core::{Result, smallvec::SmallVec};
+use matron_server_core::{Result, smallvec::SmallVec};
 
 use crate::{de, ser};
 

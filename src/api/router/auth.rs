@@ -33,8 +33,8 @@ use ruma::{
 		federation::openid::get_openid_userinfo,
 	},
 };
-use tuwunel_core::{Err, Error, Result, is_less_than, utils::result::LogDebugErr};
-use tuwunel_service::{Services, appservice::RegistrationInfo};
+use matron_server_core::{Err, Error, Result, is_less_than, utils::result::LogDebugErr};
+use matron_server_service::{Services, appservice::RegistrationInfo};
 
 pub(crate) use self::uiaa::auth_uiaa;
 use self::{appservice::auth_appservice, server::auth_server};

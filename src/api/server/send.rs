@@ -26,7 +26,7 @@ use ruma::{
 	serde::Raw,
 	to_device::DeviceIdOrAllDevices,
 };
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Error, Result, debug,
 	debug::INFO_SPAN_LEVEL,
 	debug_warn, defer, err, error,
@@ -42,7 +42,7 @@ use tuwunel_core::{
 	},
 	warn,
 };
-use tuwunel_service::{
+use matron_server_service::{
 	Services,
 	sending::{EDU_LIMIT, PDU_LIMIT},
 };

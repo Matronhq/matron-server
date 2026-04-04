@@ -1,11 +1,11 @@
 use axum::extract::State;
 use futures::{FutureExt, StreamExt};
 use ruma::api::federation::space::get_hierarchy;
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result,
 	utils::stream::{BroadbandExt, IterStream},
 };
-use tuwunel_service::rooms::spaces::{Identifier, SummaryAccessibility, get_parent_children_via};
+use matron_server_service::rooms::spaces::{Identifier, SummaryAccessibility, get_parent_children_via};
 
 use crate::Ruma;
 

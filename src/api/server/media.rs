@@ -6,8 +6,8 @@ use ruma::{
 		Content, ContentMetadata, FileOrLocation, get_content, get_content_thumbnail,
 	},
 };
-use tuwunel_core::{Err, Result, utils::content_disposition::make_content_disposition};
-use tuwunel_service::media::{Dim, Media};
+use matron_server_core::{Err, Result, utils::content_disposition::make_content_disposition};
+use matron_server_service::media::{Dim, Media};
 
 use crate::Ruma;
 

@@ -15,7 +15,7 @@ use futures::{
 use loole::{Receiver, Sender};
 use ruma::{OwnedUserId, UserId, events::presence::PresenceEvent, presence::PresenceState};
 use tokio::sync::RwLock;
-use tuwunel_core::{Result, checked, debug, debug_warn, result::LogErr, trace};
+use matron_server_core::{Result, checked, debug, debug_warn, result::LogErr, trace};
 
 use self::{aggregate::PresenceAggregator, data::Data, presence::Presence};
 
@@ -132,7 +132,7 @@ impl Service {
 			return;
 		}
 
-		let now = tuwunel_core::utils::millis_since_unix_epoch();
+		let now = matron_server_core::utils::millis_since_unix_epoch();
 		self.last_sync_seen
 			.write()
 			.await
@@ -141,7 +141,7 @@ impl Service {
 
 	/// Returns milliseconds since last observed sync for user (if any)
 	pub async fn last_sync_gap_ms(&self, user_id: &UserId) -> Option<u64> {
-		let now = tuwunel_core::utils::millis_since_unix_epoch();
+		let now = matron_server_core::utils::millis_since_unix_epoch();
 		self.last_sync_seen
 			.read()
 			.await

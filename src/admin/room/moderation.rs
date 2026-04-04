@@ -1,12 +1,12 @@
 use clap::Subcommand;
 use futures::{FutureExt, StreamExt};
 use ruma::{OwnedRoomId, OwnedRoomOrAliasId, RoomId, RoomOrAliasId};
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, debug, is_equal_to,
 	utils::{IterStream, ReadyExt},
 	warn,
 };
-use tuwunel_service::Services;
+use matron_server_service::Services;
 
 use crate::{admin_command, admin_command_dispatch, get_room_info};
 

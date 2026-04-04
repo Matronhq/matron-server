@@ -1,7 +1,7 @@
 use clap::Subcommand;
 use ruma::OwnedUserId;
-use tuwunel_core::Result;
-use tuwunel_macros::{admin_command, admin_command_dispatch};
+use matron_server_core::Result;
+use matron_server_macros::{admin_command, admin_command_dispatch};
 
 #[admin_command_dispatch]
 #[derive(Debug, Subcommand)]

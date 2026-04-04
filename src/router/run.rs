@@ -4,10 +4,10 @@ use std::{
 };
 
 use futures::{FutureExt, future::join, pin_mut};
-use tuwunel_core::{
+use matron_server_core::{
 	Error, Result, Server, debug, debug_error, debug_info, error, info, utils::BoolExt,
 };
-use tuwunel_service::Services;
+use matron_server_service::Services;
 
 use crate::{handle::ServerHandle, serve};
 
@@ -18,7 +18,7 @@ pub(crate) async fn run(services: Arc<Services>) -> Result {
 	debug!("Start");
 
 	// Install the admin room callback here for now
-	tuwunel_admin::init(&services.admin).await;
+	matron_server_admin::init(&services.admin).await;
 
 	// Execute configured startup commands.
 	services.admin.startup_execute().await?;
@@ -60,7 +60,7 @@ pub(crate) async fn run(services: Arc<Services>) -> Result {
 	_ = sigs.await;
 
 	// Remove the admin room callback
-	tuwunel_admin::fini(&services.admin).await;
+	matron_server_admin::fini(&services.admin).await;
 
 	debug_info!("Finish");
 	res

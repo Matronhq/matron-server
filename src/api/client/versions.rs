@@ -1,7 +1,7 @@
 use std::iter::once;
 
 use ruma::api::client::discovery::get_supported_versions;
-use tuwunel_core::Result;
+use matron_server_core::Result;
 
 use crate::Ruma;
 

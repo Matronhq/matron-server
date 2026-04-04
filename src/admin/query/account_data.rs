@@ -1,8 +1,8 @@
 use clap::Subcommand;
 use futures::StreamExt;
 use ruma::{OwnedRoomId, OwnedUserId};
-use tuwunel_core::Result;
-use tuwunel_database::Deserialized;
+use matron_server_core::Result;
+use matron_server_database::Deserialized;
 
 use crate::{admin_command, admin_command_dispatch};
 

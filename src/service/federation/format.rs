@@ -1,7 +1,7 @@
 use futures::future::OptionFuture;
 use ruma::{CanonicalJsonObject, CanonicalJsonValue, RoomId, RoomVersionId};
 use serde_json::value::{RawValue as RawJsonValue, to_raw_value};
-use tuwunel_core::{
+use matron_server_core::{
 	implement,
 	matrix::pdu,
 	utils::{future::TryExtExt, result::FlatOk},

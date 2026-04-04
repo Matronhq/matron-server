@@ -1,7 +1,7 @@
 use std::{collections::HashMap, hash::Hash, iter::IntoIterator};
 
 use futures::{Stream, StreamExt};
-use tuwunel_core::validated;
+use matron_server_core::validated;
 
 use super::{ConflictMap, StateMap};
 

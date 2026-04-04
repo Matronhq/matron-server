@@ -6,7 +6,7 @@ mod moderation;
 
 use clap::Subcommand;
 use ruma::OwnedRoomId;
-use tuwunel_core::Result;
+use matron_server_core::Result;
 
 use self::{
 	alias::RoomAliasCommand, directory::RoomDirectoryCommand, info::RoomInfoCommand,

@@ -26,6 +26,6 @@ If you're on macOS and need to build an image, run `nix build .#linux-complement
 We have a Complement fork as some tests have needed to be fixed. This can be found
 at: <https://github.com/matrix-construct/complement>
 
-[ci-workflows]: https://github.com/matrix-construct/tuwunel/actions/workflows/ci.yml?query=event%3Apush+is%3Asuccess+actor%3Ajevolk
+[ci-workflows]: https://github.com/matronhq/matron-server/actions/workflows/ci.yml?query=event%3Apush+is%3Asuccess+actor%3Ajevolk
 [complement]: https://github.com/matrix-org/complement
 [direnv]: https://direnv.net/docs/hook.html

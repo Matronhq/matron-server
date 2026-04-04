@@ -15,15 +15,15 @@ pub(super) fn flags_capture(args: TokenStream) -> TokenStream {
 	let ret = quote! {
 		pub static RUSTC_FLAGS: [&str; #flag_len] = [#( #flag ),*];
 
-		#[tuwunel_core::ctor]
+		#[matron_server_core::ctor]
 		fn _set_rustc_flags() {
-			tuwunel_core::info::rustc::FLAGS.lock().expect("locked").insert(#crate_name, &RUSTC_FLAGS);
+			matron_server_core::info::rustc::FLAGS.lock().expect("locked").insert(#crate_name, &RUSTC_FLAGS);
 		}
 
 		// static strings have to be yanked on module unload
-		#[tuwunel_core::dtor]
+		#[matron_server_core::dtor]
 		fn _unset_rustc_flags() {
-			tuwunel_core::info::rustc::FLAGS.lock().expect("locked").remove(#crate_name);
+			matron_server_core::info::rustc::FLAGS.lock().expect("locked").remove(#crate_name);
 		}
 	};
 

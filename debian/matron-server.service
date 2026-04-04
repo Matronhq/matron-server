@@ -1,19 +1,19 @@
 [Unit]
-Description=Tuwunel Matrix homeserver
+Description=Matron Server Matrix homeserver
 Wants=network-online.target
 After=network-online.target
-Documentation=https://tuwunel.chat/
+Documentation=https://matron.chat/
 
 [Service]
-User=tuwunel
-Group=tuwunel
+User=matron-server
+Group=matron-server
 Type=notify
 
-Environment="TUWUNEL_CONFIG=/etc/tuwunel/tuwunel.toml"
+Environment="MATRON_SERVER_CONFIG=/etc/matron-server/matron-server.toml"
 
-ExecStart=/usr/sbin/tuwunel
+ExecStart=/usr/sbin/matron-server
 
-ReadWritePaths=/var/lib/tuwunel /etc/tuwunel
+ReadWritePaths=/var/lib/matron-server /etc/matron-server
 
 AmbientCapabilities=
 CapabilityBoundingSet=
@@ -48,8 +48,9 @@ SystemCallArchitectures=native
 SystemCallFilter=@system-service @resources
 SystemCallFilter=~@clock @debug @module @mount @reboot @swap @cpu-emulation @obsolete @timer @chown @setuid @privileged @keyring @ipc
 SystemCallErrorNumber=EPERM
+#StateDirectory=matron-server
 
-RuntimeDirectory=tuwunel
+RuntimeDirectory=matron-server
 RuntimeDirectoryMode=0750
 
 Restart=on-failure
@@ -63,4 +64,4 @@ StartLimitBurst=5
 
 [Install]
 WantedBy=multi-user.target
-Alias=matrix-tuwunel.service
+Alias=matrix-matron-server.service

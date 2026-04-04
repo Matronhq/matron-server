@@ -13,12 +13,12 @@ use ruma::{
 	},
 	uint,
 };
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, debug_warn, info,
 	matrix::{Event, pdu::PduBuilder},
 	utils::{self, ReadyExt, stream::IterStream},
 };
-use tuwunel_service::{Services, users::Register};
+use matron_server_service::{Services, users::Register};
 
 use crate::{
 	admin_command, get_room_info,

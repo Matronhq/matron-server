@@ -16,7 +16,7 @@ use ruma::{
 };
 use serde::Serialize;
 use tracing_subscriber::EnvFilter;
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, debug_error, err, info, jwt,
 	matrix::{
 		Event,
@@ -32,7 +32,7 @@ use tuwunel_core::{
 	},
 	warn,
 };
-use tuwunel_service::rooms::{short::ShortRoomId, state_compressor::HashSetCompressStateEvent};
+use matron_server_service::rooms::{short::ShortRoomId, state_compressor::HashSetCompressStateEvent};
 
 use crate::admin_command;
 
@@ -733,7 +733,7 @@ pub(super) async fn memory_stats(&self, opts: Option<String>) -> Result {
 		})
 		.collect();
 
-	let stats = tuwunel_core::alloc::memory_stats(&opts).unwrap_or_default();
+	let stats = matron_server_core::alloc::memory_stats(&opts).unwrap_or_default();
 
 	self.write_str("```\n").await?;
 	self.write_str(&stats).await?;
@@ -921,7 +921,7 @@ pub(super) async fn database_files(&self, map: Option<String>, level: Option<i32
 
 #[admin_command]
 pub(super) async fn trim_memory(&self) -> Result {
-	tuwunel_core::alloc::trim(None)?;
+	matron_server_core::alloc::trim(None)?;
 
 	writeln!(self, "done").await
 }

@@ -22,7 +22,7 @@ use ruma::{
 	events::StateEventType,
 	uint,
 };
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, err, info,
 	matrix::Event,
 	utils::{
@@ -31,7 +31,7 @@ use tuwunel_core::{
 		stream::{IterStream, ReadyExt, WidebandExt},
 	},
 };
-use tuwunel_service::Services;
+use matron_server_service::Services;
 
 use crate::Ruma;
 

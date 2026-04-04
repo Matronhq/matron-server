@@ -7,7 +7,7 @@ use ruma::{
 	},
 	directory::Filter,
 };
-use tuwunel_core::{Error, Result};
+use matron_server_core::{Error, Result};
 
 use crate::Ruma;
 

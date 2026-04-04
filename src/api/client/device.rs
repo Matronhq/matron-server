@@ -7,7 +7,7 @@ use ruma::{
 		self, delete_device, delete_devices, get_device, get_devices, update_device,
 	},
 };
-use tuwunel_core::{Err, Result, debug, err, utils::string::to_small_string};
+use matron_server_core::{Err, Result, debug, err, utils::string::to_small_string};
 
 use crate::{Ruma, router::auth_uiaa};
 

@@ -37,18 +37,16 @@ dockerTools.buildLayeredImage {
       "RUST_BACKTRACE=full"
     ];
     Labels = {
-      "org.opencontainers.image.authors" =
-        "June Clementine Strawberry <june@girlboss.ceo> and Jason Volk
-      <jason@zemos.net>";
+      "org.opencontainers.image.authors" = "Matron Contributors";
       "org.opencontainers.image.created" = "@${toString inputs.self.lastModified}";
-      "org.opencontainers.image.description" = "a very cool Matrix chat homeserver written in Rust";
-      "org.opencontainers.image.documentation" = "https://conduwuit.puppyirl.gay/";
+      "org.opencontainers.image.description" = "A fast and reliable Matrix homeserver, forked from Tuwunel.";
+      "org.opencontainers.image.documentation" = "https://matron.chat";
       "org.opencontainers.image.licenses" = "Apache-2.0";
       "org.opencontainers.image.revision" = inputs.self.rev or inputs.self.dirtyRev or "";
-      "org.opencontainers.image.source" = "https://github.com/girlbossceo/conduwuit";
+      "org.opencontainers.image.source" = "https://github.com/matronhq/matron-server";
       "org.opencontainers.image.title" = main.pname;
-      "org.opencontainers.image.url" = "https://conduwuit.puppyirl.gay/";
-      "org.opencontainers.image.vendor" = "girlbossceo";
+      "org.opencontainers.image.url" = "https://matron.chat";
+      "org.opencontainers.image.vendor" = "yearbook";
       "org.opencontainers.image.version" = main.version;
     };
   };

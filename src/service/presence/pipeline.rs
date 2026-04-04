@@ -11,7 +11,7 @@ use ruma::{
 	DeviceId, OwnedUserId, UInt, UserId, events::presence::PresenceEvent, presence::PresenceState,
 };
 use tokio::time::sleep;
-use tuwunel_core::{
+use matron_server_core::{
 	Error, Result, debug, error,
 	result::LogErr,
 	trace,
@@ -97,7 +97,7 @@ impl Service {
 		status_msg: Option<String>,
 		refresh_window_ms: Option<u64>,
 	) -> Result {
-		let now = tuwunel_core::utils::millis_since_unix_epoch();
+		let now = matron_server_core::utils::millis_since_unix_epoch();
 		// 1) Capture per-device presence snapshot for aggregation.
 		debug!(
 			?user_id,
@@ -341,7 +341,7 @@ impl Service {
 		}
 
 		let presence_state = presence.state().clone();
-		let now = tuwunel_core::utils::millis_since_unix_epoch();
+		let now = matron_server_core::utils::millis_since_unix_epoch();
 		let aggregated = self
 			.device_presence
 			.aggregate(user_id, now, self.idle_timeout, self.offline_timeout)

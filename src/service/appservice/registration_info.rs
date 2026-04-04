@@ -1,5 +1,5 @@
 use ruma::{OwnedUserId, ServerName, UserId, api::appservice::Registration};
-use tuwunel_core::Result;
+use matron_server_core::Result;
 
 use super::NamespaceRegex;
 

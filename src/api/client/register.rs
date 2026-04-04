@@ -12,8 +12,8 @@ use ruma::{
 		uiaa::{AuthFlow, AuthType, UiaaInfo},
 	},
 };
-use tuwunel_core::{Err, Error, Result, debug_info, debug_warn, info, utils};
-use tuwunel_service::users::{Register, device::generate_refresh_token};
+use matron_server_core::{Err, Error, Result, debug_info, debug_warn, info, utils};
+use matron_server_service::users::{Register, device::generate_refresh_token};
 
 use super::SESSION_ID_LENGTH;
 use crate::Ruma;

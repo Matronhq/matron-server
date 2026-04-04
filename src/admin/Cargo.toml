@@ -1,5 +1,5 @@
 [package]
-name = "tuwunel_admin"
+name = "matron_server_admin"
 categories.workspace = true
 description.workspace = true
 edition.workspace = true
@@ -19,68 +19,68 @@ crate-type = [
 
 [features]
 brotli_compression = [
-	"tuwunel-core/brotli_compression",
-	"tuwunel-service/brotli_compression",
+	"matron-server-core/brotli_compression",
+	"matron-server-service/brotli_compression",
 ]
 bzip2_compression = [
-	"tuwunel-database/bzip2_compression",
-	"tuwunel-service/bzip2_compression",
+	"matron-server-database/bzip2_compression",
+	"matron-server-service/bzip2_compression",
 ]
 gzip_compression = [
-	"tuwunel-core/gzip_compression",
-	"tuwunel-service/gzip_compression",
+	"matron-server-core/gzip_compression",
+	"matron-server-service/gzip_compression",
 ]
 io_uring = [
-	"tuwunel-database/io_uring",
-	"tuwunel-service/io_uring",
+	"matron-server-database/io_uring",
+	"matron-server-service/io_uring",
 ]
 jemalloc = [
-	"tuwunel-core/jemalloc",
-	"tuwunel-database/jemalloc",
-	"tuwunel-service/jemalloc",
+	"matron-server-core/jemalloc",
+	"matron-server-database/jemalloc",
+	"matron-server-service/jemalloc",
 ]
 jemalloc_conf = [
-	"tuwunel-core/jemalloc_conf",
-	"tuwunel-database/jemalloc_conf",
-	"tuwunel-service/jemalloc_conf",
+	"matron-server-core/jemalloc_conf",
+	"matron-server-database/jemalloc_conf",
+	"matron-server-service/jemalloc_conf",
 ]
 jemalloc_prof = [
-	"tuwunel-core/jemalloc_prof",
-	"tuwunel-database/jemalloc_prof",
-	"tuwunel-service/jemalloc_prof",
+	"matron-server-core/jemalloc_prof",
+	"matron-server-database/jemalloc_prof",
+	"matron-server-service/jemalloc_prof",
 ]
 jemalloc_stats = [
-	"tuwunel-core/jemalloc_stats",
-	"tuwunel-database/jemalloc_stats",
-	"tuwunel-service/jemalloc_stats",
+	"matron-server-core/jemalloc_stats",
+	"matron-server-database/jemalloc_stats",
+	"matron-server-service/jemalloc_stats",
 ]
 lz4_compression = [
-	"tuwunel-database/lz4_compression",
-	"tuwunel-service/lz4_compression",
+	"matron-server-database/lz4_compression",
+	"matron-server-service/lz4_compression",
 ]
 release_max_log_level = [
-	"tuwunel-core/release_max_log_level",
-	"tuwunel-database/release_max_log_level",
-	"tuwunel-service/release_max_log_level",
+	"matron-server-core/release_max_log_level",
+	"matron-server-database/release_max_log_level",
+	"matron-server-service/release_max_log_level",
 	"tracing/max_level_trace",
 	"tracing/release_max_level_info",
 	"log/max_level_trace",
 	"log/release_max_level_info",
 ]
 zstd_compression = [
-	"tuwunel-core/zstd_compression",
-	"tuwunel-database/zstd_compression",
-	"tuwunel-service/zstd_compression",
+	"matron-server-core/zstd_compression",
+	"matron-server-database/zstd_compression",
+	"matron-server-service/zstd_compression",
 ]
 
 [dependencies]
 base64.workspace = true
 bytes.workspace = true
 clap.workspace = true
-tuwunel-core.workspace = true
-tuwunel-database.workspace = true
-tuwunel-macros.workspace = true
-tuwunel-service.workspace = true
+matron-server-core.workspace = true
+matron-server-database.workspace = true
+matron-server-macros.workspace = true
+matron-server-service.workspace = true
 const-str.workspace = true
 ctor.workspace = true
 futures.workspace = true

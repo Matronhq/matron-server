@@ -2,7 +2,7 @@ use axum::extract::State;
 use axum_client_ip::InsecureClientIp;
 use futures::StreamExt;
 use ruma::api::client::session::{logout, logout_all};
-use tuwunel_core::Result;
+use matron_server_core::Result;
 
 use crate::Ruma;
 

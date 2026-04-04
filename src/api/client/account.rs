@@ -5,7 +5,7 @@ use ruma::api::client::account::{
 	ThirdPartyIdRemovalStatus, change_password, deactivate, get_3pids,
 	request_3pid_management_token_via_email, request_3pid_management_token_via_msisdn, whoami,
 };
-use tuwunel_core::{Err, Result, err, info, utils::ReadyExt};
+use matron_server_core::{Err, Result, err, info, utils::ReadyExt};
 
 use crate::{Ruma, router::auth_uiaa};
 

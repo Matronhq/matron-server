@@ -1,6 +1,6 @@
 use futures::StreamExt;
 use ruma::api::appservice::Registration;
-use tuwunel_core::{Err, Result, checked, err};
+use matron_server_core::{Err, Result, checked, err};
 
 use crate::admin_command;
 

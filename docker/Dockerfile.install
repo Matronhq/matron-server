@@ -11,8 +11,8 @@ WORKDIR /
 COPY --link --from=input . .
 
 WORKDIR ${install_prefix}
-ENV src_path="${CARGO_TARGET_DIR}/${rust_target}/${cargo_target_profile}/tuwunel"
-ENV dst_path="${install_prefix}/bin/tuwunel"
+ENV src_path="${CARGO_TARGET_DIR}/${rust_target}/${cargo_target_profile}/matron-server"
+ENV dst_path="${install_prefix}/bin/matron-server"
 COPY --from=bins $src_path $dst_path
 RUN <<EOF
     ldd -v "${dst_path}"

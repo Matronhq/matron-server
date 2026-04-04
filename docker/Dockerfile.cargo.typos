@@ -9,7 +9,7 @@ ARG typos_args=""
 WORKDIR /
 COPY --link --from=input . .
 
-WORKDIR /usr/src/tuwunel
+WORKDIR /usr/src/matron-server
 RUN \
 --mount=type=cache,dst=${RUSTUP_HOME}/downloads,sharing=shared \
 --mount=type=cache,dst=${CARGO_HOME}/registry,sharing=shared \

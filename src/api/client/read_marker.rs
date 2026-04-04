@@ -9,7 +9,7 @@ use ruma::{
 		receipt::{ReceiptThread, ReceiptType},
 	},
 };
-use tuwunel_core::{Err, PduCount, Result, err};
+use matron_server_core::{Err, PduCount, Result, err};
 
 use crate::Ruma;
 

@@ -7,33 +7,28 @@ default-members = ["src/*"]
 
 [workspace.package]
 authors = [
-	"Timo Kösters <timo@koesters.xyz>",
-	"June Clementine Strawberry <june@girlboss.ceo>",
-	"Jason Volk <jason@zemos.net>",
-	"Conduit Contributors",
-	"Conduwuit Contributors",
-	"Tuwunel Contributors",
+	"Matron Contributors",
 ]
 categories = ["network-programming"]
-description = "High Performance Matrix Homeserver in Rust!"
+description = "A fast and reliable Matrix homeserver, forked from Tuwunel."
 # also update edition in rustfmt.toml
 edition = "2024"
-homepage = "https://tuwunel.chat"
+homepage = "https://matron.chat"
 keywords = [
 	"chat",
 	"matrix",
 	"networking",
 	"server",
-	"uwu",
+	"homeserver",
 ]
 license = "Apache-2.0"
 readme = "README.md"
-repository = "https://github.com/matrix-construct/tuwunel"
+repository = "https://github.com/matronhq/matron-server"
 rust-version = "1.94.0"
 version = "1.5.1"
 
 [workspace.metadata.crane]
-name = "tuwunel"
+name = "matron-server"
 
 #
 # Dependencies
@@ -135,7 +130,7 @@ features = [
 	"usage",
 ]
 
-# Disabled until Axum updated. Remember to remove cfgs for tuwunel_disable.
+# Disabled until Axum updated. Remember to remove cfgs for matron_server_disable.
 #[workspace.dependencies.console-subscriber]
 #version = "0.4"
 
@@ -625,38 +620,38 @@ rev = "200e958941d522a70c5877e3d846f55b5586c68d"
 # Our crates
 #
 
-[workspace.dependencies.tuwunel-router]
-package = "tuwunel_router"
+[workspace.dependencies.matron-server-router]
+package = "matron_server_router"
 path = "src/router"
 default-features = false
 
-[workspace.dependencies.tuwunel-admin]
-package = "tuwunel_admin"
+[workspace.dependencies.matron-server-admin]
+package = "matron_server_admin"
 path = "src/admin"
 default-features = false
 
-[workspace.dependencies.tuwunel-api]
-package = "tuwunel_api"
+[workspace.dependencies.matron-server-api]
+package = "matron_server_api"
 path = "src/api"
 default-features = false
 
-[workspace.dependencies.tuwunel-service]
-package = "tuwunel_service"
+[workspace.dependencies.matron-server-service]
+package = "matron_server_service"
 path = "src/service"
 default-features = false
 
-[workspace.dependencies.tuwunel-database]
-package = "tuwunel_database"
+[workspace.dependencies.matron-server-database]
+package = "matron_server_database"
 path = "src/database"
 default-features = false
 
-[workspace.dependencies.tuwunel-core]
-package = "tuwunel_core"
+[workspace.dependencies.matron-server-core]
+package = "matron_server_core"
 path = "src/core"
 default-features = false
 
-[workspace.dependencies.tuwunel-macros]
-package = "tuwunel_macros"
+[workspace.dependencies.matron-server-macros]
+package = "matron_server_macros"
 path = "src/macros"
 default-features = false
 
@@ -706,7 +701,7 @@ codegen-units = 32
 #	'-Clink-arg=-Wl,--no-gc-sections',
 #]
 
-[profile.release-native.package.tuwunel_macros]
+[profile.release-native.package.matron_server_macros]
 inherits = "release-native.build-override"
 #rustflags = [
 #	'-Crelocation-model=pic',
@@ -736,7 +731,7 @@ strip = "none"
 [profile.dev]
 debug = 0
 #rustflags = [
-#	'--cfg', 'tuwunel_mods',
+#	'--cfg', 'matron_server_mods',
 #	'-Ztime-passes',
 #	'-Zmir-opt-level=0',
 #	'-Zvalidate-mir=false',
@@ -753,10 +748,10 @@ debug = 0
 #	'-Clink-arg=-Wl,-z,lazy',
 #]
 
-[profile.dev.package.tuwunel_core]
+[profile.dev.package.matron_server_core]
 incremental = false
 #rustflags = [
-#	'--cfg', 'tuwunel_mods',
+#	'--cfg', 'matron_server_mods',
 #	'-Ztime-passes',
 #	'-Zmir-opt-level=0',
 #	'-Ztls-model=initial-exec',
@@ -773,9 +768,9 @@ incremental = false
 #	'-Clink-arg=-Wl,-z,nodelete',
 #]
 
-[profile.dev.package.tuwunel]
+[profile.dev.package.matron-server]
 #rustflags = [
-#	'--cfg', 'tuwunel_mods',
+#	'--cfg', 'matron_server_mods',
 #	'-Ztime-passes',
 #	'-Zmir-opt-level=0',
 #	'-Zvalidate-mir=false',
@@ -796,7 +791,7 @@ strip = "symbols"
 opt-level = 'z'
 incremental = false
 #rustflags = [
-#	'--cfg', 'tuwunel_mods',
+#	'--cfg', 'matron_server_mods',
 #	'-Ztls-model=global-dynamic',
 #	'-Cprefer-dynamic=true',
 #	'-Zstaticlib-prefer-dynamic=true',
@@ -1019,5 +1014,5 @@ suspicious = { level = "warn", priority = -1 }
 ## some sadness
 let_underscore_future = { level = "allow", priority = 1 }
 
-# rust doesnt understand tuwunel's custom log macros
+# rust doesnt understand matron-server's custom log macros
 literal_string_with_formatting_args = { level = "allow", priority = 1 }

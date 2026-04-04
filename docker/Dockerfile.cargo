@@ -41,12 +41,12 @@ ARG targ_targ_dir="${CARGO_TARGET_DIR}/${rust_target}/${cargo_target_profile}"
 WORKDIR /
 COPY --link --from=input . .
 COPY --link --from=rust ${RUST_HOME} ${RUST_HOME}
-COPY --link --from=deps /usr/src/tuwunel /usr/src/tuwunel
+COPY --link --from=deps /usr/src/matron-server /usr/src/matron-server
 
 WORKDIR /usr/lib/${sys_triple}
 COPY --link --from=rocksdb . .
 
-WORKDIR /usr/src/tuwunel
+WORKDIR /usr/src/matron-server
 SHELL ["/bin/bash", "-c"]
 ENV PATH="${CARGO_HOME}/bin:$PATH"
 ENV CARGO_TERM_VERBOSE="${CARGO_TERM_VERBOSE}"
@@ -54,7 +54,7 @@ ENV RUST_BACKTRACE="${RUST_BACKTRACE}"
 ENV JEMALLOC_OVERRIDE="${JEMALLOC_OVERRIDE}"
 ENV ROCKSDB_LIB_DIR="${ROCKSDB_LIB_DIR}"
 ENV VALGRINDFLAGS="${VALGRINDFLAGS}"
-ENV TUWUNEL_DB_POOL_MAX_WORKERS="${VALGRIND_MAX_WORKERS}"
+ENV MATRON_SERVER_DB_POOL_MAX_WORKERS="${VALGRIND_MAX_WORKERS}"
 ENV CARGO_PROFILE_TEST_DEBUG="${CARGO_PROFILE_TEST_DEBUG}"
 ENV CARGO_PROFILE_TEST_INCREMENTAL="${CARGO_PROFILE_TEST_INCREMENTAL}"
 ENV CARGO_PROFILE_BENCH_DEBUG="${CARGO_PROFILE_BENCH_DEBUG}"

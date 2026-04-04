@@ -1,4 +1,4 @@
-#![cfg(all(tuwunel_mods, feature = "tuwunel_mods"))]
+#![cfg(all(matron_server_mods, feature = "matron_server_mods"))]
 
 pub(crate) use libloading::os::unix::{Library, Symbol};
 

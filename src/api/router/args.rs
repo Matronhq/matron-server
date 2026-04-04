@@ -7,8 +7,8 @@ use ruma::{
 	CanonicalJsonObject, CanonicalJsonValue, DeviceId, OwnedDeviceId, OwnedServerName,
 	OwnedUserId, ServerName, UserId, api::IncomingRequest,
 };
-use tuwunel_core::{Error, Result, debug_warn, err, trace, utils::string::EMPTY};
-use tuwunel_service::{Services, appservice::RegistrationInfo};
+use matron_server_core::{Error, Result, debug_warn, err, trace, utils::string::EMPTY};
+use matron_server_service::{Services, appservice::RegistrationInfo};
 
 use super::{auth, auth::Auth, request, request::Request};
 use crate::State;

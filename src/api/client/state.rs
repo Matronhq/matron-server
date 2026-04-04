@@ -16,12 +16,12 @@ use ruma::{
 	serde::Raw,
 };
 use serde_json::json;
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, err, is_false,
 	matrix::{Event, pdu::PduBuilder},
 	utils::BoolExt,
 };
-use tuwunel_service::Services;
+use matron_server_service::Services;
 
 use crate::{Ruma, RumaResponse};
 
@@ -224,7 +224,7 @@ async fn allowed_to_send_state_event(
 						return Err!(Request(BadJson(debug_warn!(
 							?room_id,
 							"Sending an ACL event with an empty allow key will permanently \
-							 brick the room for non-tuwunel's as this equates to no servers \
+							 brick the room for non-matron-server's as this equates to no servers \
 							 being allowed to participate in this room."
 						))));
 					}
@@ -233,7 +233,7 @@ async fn allowed_to_send_state_event(
 						return Err!(Request(BadJson(debug_warn!(
 							?room_id,
 							"Sending an ACL event with a deny and allow key value of \"*\" will \
-							 permanently brick the room for non-tuwunel's as this equates to no \
+							 permanently brick the room for non-matron-server's as this equates to no \
 							 servers being allowed to participate in this room."
 						))));
 					}

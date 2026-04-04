@@ -9,7 +9,7 @@ use std::{cmp, num::Saturating as Sat};
 
 use futures::{StreamExt, pin_mut};
 use ruma::{Mxc, UInt, UserId, http_headers::ContentDisposition, media::Method};
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, checked, err, implement,
 	utils::{result::LogDebugErr, stream::IterStream},
 };
@@ -113,7 +113,7 @@ async fn get_thumbnail_generate(
 	data: Metadata,
 ) -> Result<Option<Media>> {
 	let Some(media) = self.get(mxc).await? else {
-		return tuwunel_core::Err!("Could not find original media.");
+		return matron_server_core::Err!("Could not find original media.");
 	};
 
 	let Ok(image) = image::load_from_memory(&media.content) else {

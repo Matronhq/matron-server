@@ -8,7 +8,7 @@ use ruma::{
 	serde::{Base64, base64::Standard},
 	signatures::verify_canonical_json_bytes,
 };
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, err, is_equal_to,
 	matrix::{Event, StateKey},
 };

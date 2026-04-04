@@ -5,7 +5,7 @@ use ruma::{
 	events::room::member::{MembershipState, RoomMemberEventContent},
 	serde::Raw,
 };
-use tuwunel_core::{
+use matron_server_core::{
 	Result, implement,
 	matrix::PduBuilder,
 	utils::{
@@ -13,7 +13,7 @@ use tuwunel_core::{
 		stream::{IterStream, TryIgnore},
 	},
 };
-use tuwunel_database::{Deserialized, Ignore, Interfix, Json};
+use matron_server_database::{Deserialized, Ignore, Interfix, Json};
 
 #[implement(super::Service)]
 pub async fn update_displayname(

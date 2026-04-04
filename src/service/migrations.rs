@@ -8,7 +8,7 @@ use ruma::{
 	},
 	push::Ruleset,
 };
-use tuwunel_core::{
+use matron_server_core::{
 	Err, Result, debug, debug_info, debug_warn, err, error, info,
 	itertools::Itertools,
 	matrix::PduCount,
@@ -163,7 +163,7 @@ async fn migrate(services: &Services) -> Result {
 	assert_eq!(
 		services.globals.db.database_version().await,
 		DATABASE_VERSION,
-		"Failed asserting local database version {} is equal to known latest tuwunel database \
+		"Failed asserting local database version {} is equal to known latest matron-server database \
 		 version {}",
 		services.globals.db.database_version().await,
 		DATABASE_VERSION,
@@ -515,7 +515,7 @@ async fn fix_referencedevents_missing_sep(services: &Services) -> Result {
 		.ready_fold(totals, |mut a, (i, (key, val))| {
 			debug_assert!(val.is_empty(), "expected no value");
 
-			let has_sep = key.contains(&tuwunel_database::SEP);
+			let has_sep = key.contains(&matron_server_database::SEP);
 
 			if !has_sep {
 				let key_str = std::str::from_utf8(key).expect("key not utf-8");
@@ -543,7 +543,7 @@ async fn fix_referencedevents_missing_sep(services: &Services) -> Result {
 
 async fn fix_readreceiptid_readreceipt_duplicates(services: &Services) -> Result {
 	use ruma::identifiers_validation::ID_MAX_BYTES;
-	use tuwunel_core::arrayvec::ArrayString;
+	use matron_server_core::arrayvec::ArrayString;
 
 	type ArrayId = ArrayString<ID_MAX_BYTES>;
 	type Key<'a> = (&'a RoomId, u64, &'a UserId);
@@ -594,7 +594,7 @@ async fn fix_readreceiptid_readreceipt_duplicates(services: &Services) -> Result
 }
 
 async fn fix_hashed_sentinel_passwords(services: &Services) -> Result {
-	use tuwunel_core::utils::hash::verify_password;
+	use matron_server_core::utils::hash::verify_password;
 
 	const PASSWORD_SENTINEL: &str = "*";
 

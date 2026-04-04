@@ -5,7 +5,7 @@ use futures::{
 	stream::FusedStream,
 	task::{Context, Poll},
 };
-use tuwunel_core::Result;
+use matron_server_core::Result;
 
 use super::{Cursor, State, slice_longevity};
 use crate::keyval::Key;
