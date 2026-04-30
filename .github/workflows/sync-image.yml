@@ -45,3 +45,13 @@ jobs:
           docker buildx imagetools create \
             --tag "${target_image}:${TARGET_TAG}" \
             "ghcr.io/matrix-construct/tuwunel:${SOURCE_TAG}"
+
+      - name: Make GHCR package public
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh api \
+            -X PATCH \
+            "/orgs/${GITHUB_REPOSITORY_OWNER}/packages/container/matron-server/visibility" \
+            -f visibility=public
