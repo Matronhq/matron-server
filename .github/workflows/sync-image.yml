@@ -37,9 +37,11 @@ jobs:
         env:
           SOURCE_TAG: ${{ inputs.source_tag || 'latest' }}
           TARGET_TAG: ${{ inputs.target_tag || 'latest' }}
-          TARGET_IMAGE: ghcr.io/${{ github.repository_owner }}/matron-server
+          TARGET_OWNER: ${{ github.repository_owner }}
         run: |
           set -euo pipefail
+          target_owner="$(printf '%s' "${TARGET_OWNER}" | tr '[:upper:]' '[:lower:]')"
+          target_image="ghcr.io/${target_owner}/matron-server"
           docker buildx imagetools create \
-            --tag "${TARGET_IMAGE}:${TARGET_TAG}" \
+            --tag "${target_image}:${TARGET_TAG}" \
             "ghcr.io/matrix-construct/tuwunel:${SOURCE_TAG}"
