@@ -54,4 +54,5 @@ jobs:
           gh api \
             -X PATCH \
             "/orgs/${GITHUB_REPOSITORY_OWNER}/packages/container/matron-server/visibility" \
-            -f visibility=public
+            -f visibility=public \
+            || echo "::warning::Could not change package visibility automatically; configure the GHCR package as public in GitHub package settings."
