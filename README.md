@@ -1,11 +1,31 @@
-# Tuwunel<sup>💕</sup>
+# Matron Server
 
-![GitHub License](https://img.shields.io/github/license/matrix-construct/tuwunel?style=flat%2Dsquare&color=%238A2BE2)
-![GitHub Created At](https://img.shields.io/github/created-at/matrix-construct/tuwunel?style=flat%2Dsquare&color=%238A2BE2)
-![GitHub Commit Activity](https://img.shields.io/github/commit-activity/m/matrix-construct/tuwunel?style=flat%2Dsquare&link=https%3A%2F%2Fgithub.com%2Fmatrix-construct%2Ftuwunel%2Fpulse%2Fmonthly&color=%238A2BE2)
-![Docker Pulls](https://img.shields.io/docker/pulls/jevolk/tuwunel?style=flat%2Dsquare&color=8A2BE2)
-![GitHub Repo Stars](https://img.shields.io/github/stars/matrix-construct/tuwunel?style=flat%2Dsquare&link=https%3A%2F%2Fgithub.com%2Fmatrix-construct%2Ftuwunel&color=%238A2BE2)
-[![CI/CD](https://github.com/matrix-construct/tuwunel/actions/workflows/main.yml/badge.svg?branch=main&style=flat%2Dsquare)](https://github.com/matrix-construct/tuwunel/actions/workflows/main.yml)
+Matron Server is Matron's Matrix homeserver distribution, tracking
+[Tuwunel](https://github.com/matrix-construct/tuwunel) upstream.
+
+This fork intentionally keeps Tuwunel's native binary, crate, and configuration
+prefixes for now. Use `TUWUNEL_` environment variables and Tuwunel's upstream
+configuration docs unless a Matron-specific deployment wrapper says otherwise.
+
+## Part of the Matron ecosystem
+
+| Project | Description |
+|---------|-------------|
+| [Matron Desktop](https://github.com/matronhq/matron-desktop) | Desktop client |
+| [Matron Web](https://github.com/matronhq/matron-web) | Web client |
+| [Matron iOS](https://github.com/matronhq/matron-ios) | iOS client |
+| **Matron Server** | Matrix homeserver (this repo) |
+| [Dev Boxer](https://github.com/matronhq/dev-boxer) | One-command dev environment setup |
+
+## Upstream
+
+This repository is currently kept close to upstream Tuwunel. Most operational
+documentation below is inherited from upstream and may use the `tuwunel` name,
+paths, and environment variable prefix.
+
+The `ghcr.io/matronhq/matron-server:latest` image is mirrored from
+`ghcr.io/matrix-construct/tuwunel:latest`. Use Tuwunel's native `TUWUNEL_`
+environment variables when configuring the container.
 
 <!-- ANCHOR: catchphrase -->
 

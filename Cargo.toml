@@ -13,12 +13,13 @@ authors = [
 	"Conduit Contributors",
 	"Conduwuit Contributors",
 	"Tuwunel Contributors",
+	"Matron Contributors",
 ]
 categories = ["network-programming"]
-description = "High Performance Matrix Homeserver in Rust!"
+description = "Matron Server, a Matrix homeserver distribution tracking Tuwunel upstream."
 # also update edition in rustfmt.toml
 edition = "2024"
-homepage = "https://tuwunel.chat"
+homepage = "https://matron.chat"
 keywords = [
 	"chat",
 	"matrix",
@@ -28,7 +29,7 @@ keywords = [
 ]
 license = "Apache-2.0"
 readme = "README.md"
-repository = "https://github.com/matrix-construct/tuwunel"
+repository = "https://github.com/matronhq/matron-server"
 rust-version = "1.94.0"
 version = "1.6.0"
 
