@@ -11,7 +11,7 @@ use ruma::{
 		room::member::{MembershipState, RoomMemberEventContent},
 	},
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Event, PduCount, Result, at, debug, debug_info, debug_warn, err, extract_variant,
 	implement, info,
 	matrix::event::gen_event_id,
@@ -199,7 +199,7 @@ async fn knock_room_helper_local(
 		.supported_room_version(&room_version_id)
 	{
 		return Err!(BadServerResponse(
-			"Remote room version {room_version_id} is not supported by matron-server"
+			"Remote room version {room_version_id} is not supported by tuwunel"
 		));
 	}
 
@@ -374,7 +374,7 @@ async fn knock_room_helper_remote(
 		.supported_room_version(&room_version_id)
 	{
 		return Err!(BadServerResponse(
-			"Remote room version {room_version_id} is not supported by matron-server"
+			"Remote room version {room_version_id} is not supported by tuwunel"
 		));
 	}
 

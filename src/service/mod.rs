@@ -1,5 +1,4 @@
 #![expect(refining_impl_trait)]
-#![allow(unused_features)] // 1.96.0-nightly 2026-03-07 bug
 
 mod manager;
 mod migrations;
@@ -42,6 +41,6 @@ use log as _;
 
 pub use crate::services::Services;
 
-matron_server_core::mod_ctor! {}
-matron_server_core::mod_dtor! {}
-matron_server_core::rustc_flags_capture! {}
+tuwunel_core::mod_ctor! {}
+tuwunel_core::mod_dtor! {}
+tuwunel_core::rustc_flags_capture! {}

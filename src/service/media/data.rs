@@ -2,7 +2,7 @@ use std::{sync::Arc, time::Duration};
 
 use futures::{StreamExt, pin_mut};
 use ruma::{Mxc, OwnedMxcUri, OwnedUserId, UserId, http_headers::ContentDisposition};
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Result, debug, debug_info, err,
 	utils::{
 		ReadyExt, str_from_bytes,
@@ -10,7 +10,7 @@ use matron_server_core::{
 		string_from_bytes,
 	},
 };
-use matron_server_database::{Database, Deserialized, Ignore, Interfix, Map, serialize_key};
+use tuwunel_database::{Database, Deserialized, Ignore, Interfix, Map, serialize_key};
 
 use super::{preview::UrlPreviewData, thumbnail::Dim};
 
@@ -156,6 +156,18 @@ impl Data {
 		Ok(keys)
 	}
 
+	pub(super) async fn file_metadata_exists(&self, mxc: &Mxc<'_>, dim: &Dim) -> bool {
+		let dim: &[u32] = &[dim.width, dim.height];
+		let prefix = (mxc, dim, Interfix);
+		let keys = self
+			.mediaid_file
+			.keys_prefix_raw(&prefix)
+			.ignore_err();
+
+		pin_mut!(keys);
+		keys.next().await.is_some()
+	}
+
 	pub(super) async fn search_file_metadata(
 		&self,
 		mxc: &Mxc<'_>,
@@ -191,10 +203,11 @@ impl Data {
 			.filter(|bytes| !bytes.is_empty())
 			.map(string_from_bytes)
 			.transpose()
-			.map_err(|e| err!(Database(error!(?mxc, "Content-type is invalid: {e}"))))?
+			.map_err(|e| err!(Database(error!(?mxc, "Content-disposition is invalid: {e}"))))?
 			.as_deref()
 			.map(str::parse)
-			.transpose()?;
+			.transpose()
+			.map_err(|e| err!(Database(error!(?mxc, "Content-disposition is invalid: {e}"))))?;
 
 		Ok(Metadata { content_disposition, content_type, key })
 	}

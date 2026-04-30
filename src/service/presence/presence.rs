@@ -5,7 +5,7 @@ use ruma::{
 	presence::PresenceState,
 };
 use serde::{Deserialize, Serialize};
-use matron_server_core::{Error, Result, utils, utils::future::TryExtExt};
+use tuwunel_core::{Error, Result, utils, utils::future::TryExtExt};
 
 use crate::users;
 

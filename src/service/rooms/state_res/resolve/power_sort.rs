@@ -10,7 +10,7 @@ use ruma::{
 	events::{TimelineEventType, room::power_levels::UserPowerLevel},
 	room_version_rules::RoomVersionRules,
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Result, err,
 	matrix::Event,
 	utils::stream::{BroadbandExt, IterStream, TryBroadbandExt},

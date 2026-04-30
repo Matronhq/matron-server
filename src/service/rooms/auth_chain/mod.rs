@@ -15,7 +15,7 @@ use ruma::{
 	room_version_rules::RoomVersionRules,
 };
 use serde::Deserialize;
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Result, at, debug, debug_error, err, implement,
 	itertools::Itertools,
 	matrix::room_version,
@@ -28,7 +28,7 @@ use matron_server_core::{
 	},
 	validated, warn,
 };
-use matron_server_database::Map;
+use tuwunel_database::Map;
 
 use crate::rooms::short::ShortEventId;
 

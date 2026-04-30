@@ -9,7 +9,7 @@ use ruma::{
 	OwnedServerName,
 	api::federation::query::{get_profile_information, get_room_information},
 };
-use matron_server_core::{Err, Result, err, utils::future::TryExtExt};
+use tuwunel_core::{Err, Result, err, utils::future::TryExtExt};
 
 use crate::Ruma;
 

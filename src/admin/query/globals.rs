@@ -1,6 +1,6 @@
 use clap::Subcommand;
 use ruma::OwnedServerName;
-use matron_server_core::Result;
+use tuwunel_core::Result;
 
 use crate::Context;
 

@@ -6,13 +6,14 @@ use ruma::{
 	api::client::discovery::{
 		get_capabilities,
 		get_capabilities::v3::{
-			Capabilities, GetLoginTokenCapability, ProfileFieldsCapability, RoomVersionStability,
-			RoomVersionsCapability, ThirdPartyIdChangesCapability,
+			Capabilities, ChangePasswordCapability, GetLoginTokenCapability,
+			ProfileFieldsCapability, RoomVersionStability, RoomVersionsCapability,
+			ThirdPartyIdChangesCapability,
 		},
 	},
 };
 use serde_json::json;
-use matron_server_core::Result;
+use tuwunel_core::Result;
 
 use crate::Ruma;
 
@@ -47,6 +48,10 @@ pub(crate) async fn get_capabilities_route(
 	};
 
 	capabilities.profile_fields = ProfileFieldsCapability::new(true).into();
+
+	capabilities.change_password = ChangePasswordCapability {
+		enabled: services.server.config.login_with_password,
+	};
 
 	capabilities.set(
 		"org.matrix.msc4267.forget_forced_upon_leave",

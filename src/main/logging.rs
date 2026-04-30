@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use tracing::subscriber::NoSubscriber;
 use tracing_subscriber::{EnvFilter, Layer, Registry, fmt, layer::SubscriberExt, reload};
-use matron_server_core::{
+use tuwunel_core::{
 	Result,
 	config::Config,
 	debug_warn, err,
@@ -84,11 +84,11 @@ pub(crate) fn init(config: &Config) -> Result<(TracingFlameGuard, Logging)> {
 			(None, None)
 		};
 
-		#[cfg(matron_server_disable)]
+		#[cfg(tuwunel_disable)]
 		let jaeger_filter = EnvFilter::try_new(&config.jaeger_filter)
 			.map_err(|e| err!(Config("jaeger_filter", "{e}.")))?;
 
-		#[cfg(matron_server_disable)]
+		#[cfg(tuwunel_disable)]
 		let jaeger_layer = config.allow_jaeger.then(|| {
 			opentelemetry::global::set_text_map_propagator(
 				opentelemetry_jaeger::Propagator::new(),
@@ -96,7 +96,7 @@ pub(crate) fn init(config: &Config) -> Result<(TracingFlameGuard, Logging)> {
 
 			let tracer = opentelemetry_jaeger::new_agent_pipeline()
 				.with_auto_split_batch(true)
-				.with_service_name("matron-server")
+				.with_service_name("tuwunel")
 				.install_batch(opentelemetry_sdk::runtime::Tokio)
 				.expect("jaeger agent pipeline");
 
@@ -109,7 +109,7 @@ pub(crate) fn init(config: &Config) -> Result<(TracingFlameGuard, Logging)> {
 			Some(telemetry.with_filter(jaeger_reload_filter))
 		});
 
-		#[cfg(matron_server_disable)]
+		#[cfg(tuwunel_disable)]
 		let subscriber = subscriber.with(flame_layer).with(jaeger_layer);
 		let subscriber = subscriber.with(flame_layer);
 
@@ -125,7 +125,7 @@ pub(crate) fn init(config: &Config) -> Result<(TracingFlameGuard, Logging)> {
 	// compile-time and runtime conditions to elide it, each of those changing the
 	// subscriber's type.
 	let (console_enabled, console_disabled_reason) = tokio_console_enabled(config);
-	#[cfg(all(feature = "tokio_console", tokio_unstable, matron_server_disable))]
+	#[cfg(all(feature = "tokio_console", tokio_unstable, tuwunel_disable))]
 	if console_enabled && config.log_global_default {
 		let console_layer = console_subscriber::ConsoleLayer::builder()
 			.with_default_env()
@@ -157,7 +157,7 @@ pub(crate) fn init(config: &Config) -> Result<(TracingFlameGuard, Logging)> {
 }
 
 fn tokio_console_enabled(config: &Config) -> (bool, &'static str) {
-	if !cfg!(all(feature = "tokio_console", tokio_unstable, matron_server_disable)) {
+	if !cfg!(all(feature = "tokio_console", tokio_unstable, tuwunel_disable)) {
 		return (false, "");
 	}
 

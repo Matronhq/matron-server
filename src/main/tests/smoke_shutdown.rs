@@ -1,10 +1,9 @@
 #![cfg(test)]
-#![allow(unused_features)] // 1.96.0-nightly 2026-03-07 bug
 
 use insta::{assert_debug_snapshot, with_settings};
 use tracing::Level;
-use matron_server::{Args, Runtime, Server};
-use matron_server_core::{Result, utils::result::ErrLog};
+use tuwunel::{Args, Runtime, Server};
+use tuwunel_core::{Result, utils::result::ErrLog};
 
 #[test]
 fn smoke_shutdown() -> Result {
@@ -16,11 +15,11 @@ fn smoke_shutdown() -> Result {
 		let runtime = Runtime::new(Some(&args))?;
 		let server = Server::new(Some(&args), Some(&runtime))?;
 		let result = runtime.block_on(async {
-			matron_server::async_start(&server).await?;
-			let run = matron_server::async_run(&server);
+			tuwunel::async_start(&server).await?;
+			let run = tuwunel::async_run(&server);
 			server.server.shutdown().log_err(Level::WARN).ok();
 			run.await?;
-			matron_server::async_stop(&server).await
+			tuwunel::async_stop(&server).await
 		});
 
 		drop(runtime);

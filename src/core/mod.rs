@@ -1,5 +1,3 @@
-#![allow(unused_features)] // 1.96.0-nightly 2026-03-07 bug
-
 pub mod alloc;
 pub mod config;
 pub mod debug;
@@ -31,11 +29,11 @@ pub use matrix::{Event, EventTypeExt, Pdu, PduCount, PduEvent, PduId, RoomVersio
 pub use server::Server;
 pub use utils::{ctor, dtor, implement, result, result::Result};
 
-pub use crate as matron_server_core;
+pub use crate as tuwunel_core;
 
 rustc_flags_capture! {}
 
-#[cfg(any(not(matron_server_mods), not(feature = "matron_server_mods")))]
+#[cfg(any(not(tuwunel_mods), not(feature = "tuwunel_mods")))]
 pub mod mods {
 	use log as _;
 

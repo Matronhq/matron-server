@@ -13,7 +13,7 @@ use ruma::{
 		federation::authenticated_media::{Content, FileOrLocation},
 	},
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Error, Result, debug_warn, err, implement,
 	utils::content_disposition::make_content_disposition,
 };
@@ -21,6 +21,7 @@ use matron_server_core::{
 use super::{Dim, Media};
 
 #[implement(super::Service)]
+#[tracing::instrument(level = "debug", skip(self))]
 pub async fn fetch_remote_thumbnail(
 	&self,
 	mxc: &Mxc<'_>,
@@ -47,6 +48,7 @@ pub async fn fetch_remote_thumbnail(
 }
 
 #[implement(super::Service)]
+#[tracing::instrument(level = "debug", skip(self))]
 pub async fn fetch_remote_content(
 	&self,
 	mxc: &Mxc<'_>,

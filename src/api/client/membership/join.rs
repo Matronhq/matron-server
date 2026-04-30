@@ -1,14 +1,13 @@
 use axum::extract::State;
-use axum_client_ip::InsecureClientIp;
 use futures::FutureExt;
 use ruma::{
 	RoomId,
 	api::client::membership::{join_room_by_id, join_room_by_id_or_alias},
 };
-use matron_server_core::{Result, warn};
+use tuwunel_core::{Result, warn};
 
 use super::banned_room_check;
-use crate::Ruma;
+use crate::{ClientIp, Ruma};
 
 /// # `POST /_matrix/client/r0/rooms/{roomId}/join`
 ///
@@ -21,7 +20,7 @@ use crate::Ruma;
 #[tracing::instrument(skip_all, fields(%client), name = "join")]
 pub(crate) async fn join_room_by_id_route(
 	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
+	ClientIp(client): ClientIp,
 	body: Ruma<join_room_by_id::v3::Request>,
 ) -> Result<join_room_by_id::v3::Response> {
 	let sender_user = body.sender_user();
@@ -74,7 +73,7 @@ pub(crate) async fn join_room_by_id_route(
 #[tracing::instrument(skip_all, fields(%client), name = "join")]
 pub(crate) async fn join_room_by_id_or_alias_route(
 	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
+	ClientIp(client): ClientIp,
 	body: Ruma<join_room_by_id_or_alias::v3::Request>,
 ) -> Result<join_room_by_id_or_alias::v3::Response> {
 	let sender_user = body.sender_user();

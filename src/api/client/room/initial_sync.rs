@@ -4,7 +4,7 @@ use ruma::{
 	api::client::room::initial_sync::v3::{PaginationChunk, Request, Response},
 	events::AnyRawAccountDataEvent,
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Event, Result, at, extract_variant,
 	matrix::PduCount,
 	utils::stream::{ReadyExt, TryTools},

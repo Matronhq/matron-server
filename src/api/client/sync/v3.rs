@@ -34,7 +34,7 @@ use ruma::{
 	uint,
 };
 use tokio::time;
-use matron_server_core::{
+use tuwunel_core::{
 	Result, at,
 	debug::INFO_SPAN_LEVEL,
 	debug_error, err,
@@ -58,7 +58,7 @@ use matron_server_core::{
 		string::to_small_string,
 	},
 };
-use matron_server_service::{
+use tuwunel_service::{
 	Services,
 	rooms::{
 		lazy_loading,
@@ -68,7 +68,7 @@ use matron_server_service::{
 };
 
 use super::{load_timeline, share_encrypted_room};
-use crate::{Ruma, client::ignored_filter};
+use crate::{ClientIp, Ruma, client::ignored_filter};
 
 #[derive(Default)]
 struct StateChanges {
@@ -126,6 +126,7 @@ type PresenceUpdates = HashMap<OwnedUserId, PresenceEventContent>;
 )]
 pub(crate) async fn sync_events_route(
 	State(services): State<crate::State>,
+	ClientIp(client): ClientIp,
 	body: Ruma<sync_events::v3::Request>,
 ) -> Result<sync_events::v3::Response> {
 	let sender_user = body.sender_user();
@@ -149,7 +150,12 @@ pub(crate) async fn sync_events_route(
 	let set_presence = &body.body.set_presence;
 	let ping_presence = services
 		.presence
-		.maybe_ping_presence(sender_user, body.sender_device.as_deref(), set_presence)
+		.maybe_ping_presence(
+			sender_user,
+			body.sender_device.as_deref(),
+			Some(client),
+			set_presence,
+		)
 		.inspect_err(inspect_log)
 		.ok();
 
@@ -858,6 +864,7 @@ async fn load_joined_room(
 		room_id,
 		token: Some(since),
 		options: Some(&filter.room.state.lazy_load_options),
+		mode: lazy_loading::Mode::Update,
 	};
 
 	// Reset lazy loading because this is an initial sync

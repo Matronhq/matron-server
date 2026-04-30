@@ -27,7 +27,7 @@ pub use self::{
 /// > that might remove someone’s ability to do something in the room.
 pub(super) fn is_power_event<Pdu>(event: &Pdu) -> bool
 where
-	Pdu: matron_server_core::matrix::Event,
+	Pdu: tuwunel_core::matrix::Event,
 {
 	use ruma::events::{TimelineEventType, room::member::MembershipState};
 

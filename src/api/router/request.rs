@@ -5,16 +5,21 @@ use axum_extra::extract::cookie::CookieJar;
 use bytes::Bytes;
 use http::request::Parts;
 use serde::Deserialize;
-use matron_server_core::{Result, err, smallstr::SmallString, smallvec::SmallVec};
-use matron_server_service::Services;
+use tuwunel_core::{Result, err, smallstr::SmallString, smallvec::SmallVec};
+use tuwunel_service::Services;
 
 #[derive(Debug, Deserialize)]
 pub(super) struct QueryParams {
 	pub(super) access_token: Option<String>,
 	pub(super) user_id: Option<UserId>,
+
+	// MSC4326: device masquerading for appservices (originally MSC3202).
+	#[serde(alias = "org.matrix.msc3202.device_id")]
+	pub(super) device_id: Option<DeviceId>,
 }
 
 pub(super) type UserId = SmallString<[u8; 48]>;
+pub(super) type DeviceId = SmallString<[u8; 24]>;
 
 #[derive(Debug)]
 pub(super) struct Request {
@@ -30,7 +35,7 @@ pub(super) type PathParam = SmallString<[u8; 32]>;
 
 pub(super) async fn from(
 	services: &Services,
-	request: hyper::Request<axum::body::Body>,
+	request: http::Request<axum::body::Body>,
 ) -> Result<Request> {
 	let limited = request.with_limited_body();
 	let (mut parts, body) = limited.into_parts();

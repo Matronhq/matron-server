@@ -17,7 +17,7 @@ use ruma::{
 	},
 	events::{TimelineEventType, relation::RelationType},
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Error, Result, at, err,
 	matrix::{
 		event::{Event, RelationTypeEqual},
@@ -29,7 +29,7 @@ use matron_server_core::{
 		stream::{ReadyExt, WidebandExt},
 	},
 };
-use matron_server_service::Services;
+use tuwunel_service::Services;
 
 use crate::Ruma;
 

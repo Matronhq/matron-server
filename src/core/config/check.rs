@@ -3,7 +3,7 @@ use std::env::consts::OS;
 use either::Either;
 use itertools::Itertools;
 
-use super::{DEPRECATED_KEYS, IdentityProvider};
+use super::{DEPRECATED_KEYS, IdentityProvider, IpSource};
 use crate::{Config, Err, Result, debug, debug_info, error, warn};
 
 /// Performs check() with additional checks specific to reloading old config
@@ -19,12 +19,19 @@ pub fn reload(old: &Config, new: &Config) -> Result {
 		));
 	}
 
+	if new.ip_source != old.ip_source {
+		return Err!(Config(
+			"ip_source",
+			"ip_source cannot be changed at runtime; restart the server to apply this change."
+		));
+	}
+
 	Ok(())
 }
 
 pub fn check(config: &Config) -> Result {
 	#[cfg(debug_assertions)]
-	warn!("Note: matron-server was built without optimisations (i.e. debug build)");
+	warn!("Note: tuwunel was built without optimisations (i.e. debug build)");
 
 	warn_deprecated(config);
 	warn_unknown_key(config)?;
@@ -61,6 +68,16 @@ pub fn check(config: &Config) -> Result {
 		return Err!(Config("tls", "tls.certs and tls.key must either both be set or unset"));
 	}
 
+	if let Some(source) = config.ip_source
+		&& !matches!(source, IpSource::ConnectInfo)
+	{
+		warn!(
+			"ip_source is set to {source:?}, a header-based source. Ensure a trusted reverse \
+			 proxy populates this header for every request; otherwise clients can spoof their \
+			 IP address."
+		);
+	}
+
 	if !config.listening {
 		warn!("Configuration item `listening` is set to `false`. Cannot hear anyone.");
 	}
@@ -89,7 +106,7 @@ pub fn check(config: &Config) -> Result {
 					error!(
 						"You are detected using Docker with a loopback/localhost listening \
 						 address of {addr}. If you are using a reverse proxy on the host and \
-						 require communication to matron-server in the Docker container via NAT-based \
+						 require communication to tuwunel in the Docker container via NAT-based \
 						 networking, this will NOT work. Please change this to \"0.0.0.0\". If \
 						 this is expected, you can ignore.",
 					);
@@ -97,7 +114,7 @@ pub fn check(config: &Config) -> Result {
 					error!(
 						"You are detected using Podman with a loopback/localhost listening \
 						 address of {addr}. If you are using a reverse proxy on the host and \
-						 require communication to matron-server in the Podman container via NAT-based \
+						 require communication to tuwunel in the Podman container via NAT-based \
 						 networking, this will NOT work. Please change this to \"0.0.0.0\". If \
 						 this is expected, you can ignore.",
 					);
@@ -119,7 +136,7 @@ pub fn check(config: &Config) -> Result {
 	if config.server_name == "your.server.name" {
 		return Err!(Config(
 			"server_name",
-			"You must specify a valid server name for production usage of matron-server."
+			"You must specify a valid server name for production usage of tuwunel."
 		));
 	}
 
@@ -204,9 +221,9 @@ pub fn check(config: &Config) -> Result {
 		return Err!(Config(
 			"registration_token",
 			"!! You have `allow_registration` enabled without a token configured in your config \
-			 which means you are allowing ANYONE to register on your matron-server instance without \
+			 which means you are allowing ANYONE to register on your tuwunel instance without \
 			 any 2nd-step (e.g. registration token). If this is not the intended behaviour, \
-			 please set a registration token. For security and safety reasons, matron-server will \
+			 please set a registration token. For security and safety reasons, tuwunel will \
 			 shut down. If you are extra sure this is the desired behaviour you want, please \
 			 set the following config option to true:
 `yes_i_am_very_very_sure_i_want_an_open_registration_server_prone_to_abuse`"
@@ -370,6 +387,26 @@ pub fn check(config: &Config) -> Result {
 		}
 	}
 
+	if config
+		.media_storage_providers
+		.iter()
+		.filter(|&provider| {
+			if config.storage_provider.contains_key(provider) || provider == "media" {
+				return false;
+			}
+
+			error!("`media_storage_providers` references non-existent provider {provider:?}");
+			true
+		})
+		.count()
+		.gt(&0)
+	{
+		return Err!(Config(
+			"media_storage_providers",
+			"Contains missing or unconfigured storage providers."
+		));
+	}
+
 	if config.media_storage_providers.len() > 1 && config.store_media_on_providers.is_empty() {
 		warn!(
 			"Media will be duplicated to multiple providers {:?} until \
@@ -396,7 +433,7 @@ fn warn_deprecated(config: &Config) {
 
 	if found_deprecated_keys {
 		warn!(
-			"Deprecated config keys were found. Read matron-server config documentation at https://matron.chat/configuration.html and \
+			"Deprecated config keys were found. Read tuwunel config documentation at https://tuwunel.chat/configuration.html and \
 			 check your configuration if any new configuration parameters should be adjusted"
 		);
 	}
@@ -414,9 +451,9 @@ fn warn_unknown_key(config: &Config) -> Result {
 				None
 			} else {
 				if config.error_on_unknown_config_opts {
-					error!("Config parameter \"{key}\" is unknown to matron-server");
+					error!("Config parameter \"{key}\" is unknown to tuwunel");
 				} else {
-					warn!("Config parameter \"{key}\" is unknown to matron-server, ignoring.");
+					warn!("Config parameter \"{key}\" is unknown to tuwunel, ignoring.");
 				}
 				Some(key.as_str())
 			}

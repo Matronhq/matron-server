@@ -4,19 +4,18 @@ use futures::{Stream, StreamExt, TryFutureExt, pin_mut};
 use ruma::{
 	DeviceId, KeyId, OneTimeKeyAlgorithm, OneTimeKeyId, OneTimeKeyName, OwnedKeyId, RoomId, UInt,
 	UserId,
-	api::client::error::ErrorKind,
 	encryption::{CrossSigningKey, DeviceKeys, OneTimeKey},
 	serde::Raw,
 };
-use matron_server_core::{
-	Err, Error, Result, debug_error, err, implement,
+use tuwunel_core::{
+	Err, Result, debug_error, err, implement,
 	utils::{
 		ReadyExt,
 		stream::{TryExpect, TryIgnore, TryReadyExt},
 		string::Unquoted,
 	},
 };
-use matron_server_database::{Deserialized, Ignore, Json};
+use tuwunel_database::{Deserialized, Ignore, Json};
 
 #[implement(super::Service)]
 pub async fn add_one_time_keys<'a, Keys>(
@@ -190,7 +189,7 @@ pub async fn count_one_time_keys(
 
 #[implement(super::Service)]
 pub async fn prune_one_time_keys(&self, user_id: &UserId, device_id: &DeviceId) {
-	use matron_server_database::keyval::Key;
+	use tuwunel_database::keyval::Key;
 
 	let query = (user_id, device_id);
 	self.db
@@ -252,16 +251,10 @@ pub async fn add_cross_signing_keys(
 
 		let self_signing_key_id = self_signing_key_ids
 			.next()
-			.ok_or(Error::BadRequest(
-				ErrorKind::InvalidParam,
-				"Self signing key contained no key.",
-			))?;
+			.ok_or_else(|| err!(Request(InvalidParam("Self signing key contained no key."))))?;
 
 		if self_signing_key_ids.next().is_some() {
-			return Err(Error::BadRequest(
-				ErrorKind::InvalidParam,
-				"Self signing key contained more than one key.",
-			));
+			return Err!(Request(InvalidParam("Self signing key contained more than one key.")));
 		}
 
 		let mut self_signing_key_key = prefix.clone();
@@ -389,21 +382,37 @@ fn keys_changed_user_or_room<'a>(
 
 #[implement(super::Service)]
 pub async fn mark_device_key_update(&self, user_id: &UserId) {
-	let count = self.services.globals.next_count();
+	let update_all_rooms = !self
+		.services
+		.config
+		.device_key_update_encrypted_rooms_only;
 
+	let all_or_is_encrypted = async |room_id: &RoomId| {
+		update_all_rooms
+			|| self
+				.services
+				.state_accessor
+				.is_encrypted_room(room_id)
+				.await
+	};
+
+	let count = self.services.globals.next_count();
+	let user_key = (user_id, *count);
+
+	self.db
+		.keychangeid_userid
+		.put_raw(user_key, user_id);
 	self.services
 		.state_cache
 		.rooms_joined(user_id)
-		// Don't send key updates to unencrypted rooms
-		.filter(|room_id| self.services.state_accessor.is_encrypted_room(room_id))
+		.filter(|room_id| all_or_is_encrypted(*room_id))
 		.ready_for_each(|room_id| {
-			let key = (room_id, *count);
-			self.db.keychangeid_userid.put_raw(key, user_id);
+			let room_key = (room_id, *count);
+			self.db
+				.keychangeid_userid
+				.put_raw(room_key, user_id);
 		})
 		.await;
-
-	let key = (user_id, *count);
-	self.db.keychangeid_userid.put_raw(key, user_id);
 }
 
 #[implement(super::Service)]
@@ -440,6 +449,7 @@ where
 
 	let cleaned = clean_signatures(key, sender_user, user_id, allowed_signatures)?;
 	let raw_value = serde_json::value::to_raw_value(&cleaned)?;
+
 	Ok(Raw::from_json(raw_value))
 }
 
@@ -554,7 +564,7 @@ where
 			mem::replace(signatures, serde_json::Map::with_capacity(new_capacity))
 		{
 			let sid = <&UserId>::try_from(user.as_str())
-				.map_err(|_| Error::bad_database("Invalid user ID in database."))?;
+				.map_err(|e| err!(Database("Invalid user ID in database: {e}")))?;
 
 			if sender_user == Some(user_id) || sid == user_id || allowed_signatures(sid) {
 				signatures.insert(user, signature);

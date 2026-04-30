@@ -3,8 +3,8 @@
 FROM input AS source
 ARG git_checkout
 
-ADD --link --keep-git-dir . /usr/src/matron-server
-WORKDIR /usr/src/matron-server
+ADD --link --keep-git-dir . /usr/src/tuwunel
+WORKDIR /usr/src/tuwunel
 RUN <<EOF
     set -eux
     git reset \
@@ -28,9 +28,9 @@ ARG ROCKSDB_LIB_DIR
 
 WORKDIR /
 COPY --link --from=rust ${RUST_HOME} ${RUST_HOME}
-COPY --link --from=source /usr/src/matron-server /usr/src/matron-server
+COPY --link --from=source /usr/src/tuwunel /usr/src/tuwunel
 
-WORKDIR /usr/src/matron-server
+WORKDIR /usr/src/tuwunel
 ENV PATH="${CARGO_HOME}/bin:$PATH"
 ENV CARGO_TERM_VERBOSE="${CARGO_TERM_VERBOSE}"
 ENV RUST_BACKTRACE="${RUST_BACKTRACE}"
@@ -63,7 +63,7 @@ ARG RUSTUP_HOME
 ARG CARGO_HOME
 ARG CARGO_TARGET
 
-WORKDIR /usr/src/matron-server
+WORKDIR /usr/src/tuwunel
 RUN \
 --mount=type=cache,dst=${RUSTUP_HOME}/downloads,sharing=locked \
 --mount=type=cache,dst=${CARGO_HOME}/registry,sharing=locked \
@@ -88,5 +88,5 @@ EOF
 FROM scratch AS recipe
 
 WORKDIR /
-COPY --from=preparing /usr/src/matron-server/recipe.json .
-COPY --from=preparing /usr/src/matron-server/rocksdb.url .
+COPY --from=preparing /usr/src/tuwunel/recipe.json .
+COPY --from=preparing /usr/src/tuwunel/rocksdb.url .

@@ -1,13 +1,12 @@
 #![cfg(test)]
-#![allow(unused_features)] // 1.96.0-nightly 2026-03-07 bug
 
 use insta::{assert_debug_snapshot, with_settings};
 use tokio::{
 	select,
 	time::{Duration, sleep},
 };
-use matron_server::{Args, Runtime, Server};
-use matron_server_core::Err;
+use tuwunel::{Args, Runtime, Server};
+use tuwunel_core::Err;
 
 #[test]
 #[should_panic = "I/O error: No such file or directory (os error 2)"]
@@ -23,7 +22,7 @@ fn listener_init_err() {
 		let server = Server::new(Some(&args), Some(&runtime)).unwrap();
 		let result = runtime.block_on(async {
 			select! {
-				result = matron_server::async_exec(&server) => result,
+				result = tuwunel::async_exec(&server) => result,
 				() = sleep(Duration::from_secs(10)) => Err!("Shutdown hanging after error."),
 			}
 		});

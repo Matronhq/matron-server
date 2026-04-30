@@ -17,7 +17,7 @@ use ruma::{
 };
 use tracing::Level;
 use tracing_subscriber::{EnvFilter, filter::LevelFilter};
-use matron_server_core::{
+use tuwunel_core::{
 	Error, Result, debug, error,
 	log::{
 		capture,
@@ -28,7 +28,7 @@ use matron_server_core::{
 	utils::string::{collect_stream, common_prefix},
 	warn,
 };
-use matron_server_service::{
+use tuwunel_service::{
 	Services,
 	admin::{CommandInput, CommandOutput, ProcessorFuture, ProcessorResult},
 };
@@ -100,7 +100,7 @@ async fn process_command(services: Arc<Services>, input: &CommandInput) -> Proce
 
 fn handle_panic(error: &Error, command: &CommandInput) -> ProcessorResult {
 	let link =
-		"Please submit a [bug report](https://github.com/matronhq/matron-server/issues/new). \
+		"Please submit a [bug report](https://github.com/matrix-construct/tuwunel/issues/new). \
 		 🥺";
 	let msg = format!("Panic occurred while processing command:\n```\n{error:#?}\n```\n{link}");
 	let content = RoomMessageEventContent::notice_markdown(msg);

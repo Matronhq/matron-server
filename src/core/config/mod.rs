@@ -1,9 +1,12 @@
 pub mod check;
 mod identity_provider_serde;
+pub mod ip_source;
 pub mod manager;
 mod net;
 pub mod proxy;
 pub mod room_version;
+#[cfg(test)]
+mod tests;
 
 use std::{
 	collections::{BTreeMap, BTreeSet},
@@ -11,6 +14,7 @@ use std::{
 	path::{Path, PathBuf},
 };
 
+use bytesize::ByteSize;
 use either::{Either, Either::Left};
 use figment::providers::{Data, Env, Format, Toml};
 pub use figment::{Figment, value::Value as FigmentValue};
@@ -21,27 +25,31 @@ use ruma::{
 	api::client::discovery::discover_support::ContactRole,
 };
 use serde::{Deserialize, de::IgnoredAny};
-use matron_server_macros::config_example_generator;
+use tuwunel_macros::config_example_generator;
 use url::Url;
 
-pub use self::{check::check, manager::Manager};
+pub use self::{check::check, ip_source::IpSource, manager::Manager};
 use self::{
 	net::{ListeningAddr, ListeningPort},
 	proxy::ProxyConfig,
 };
 use crate::{
 	Err, Result, err,
-	utils::{self, sys},
+	utils::{
+		self,
+		bytes::{deserialize_bytesize_u64, deserialize_bytesize_usize},
+		sys,
+	},
 };
 
-/// All the config options for matron-server.
+/// All the config options for tuwunel.
 #[expect(rustdoc::broken_intra_doc_links, rustdoc::bare_urls)]
-#[derive(Clone, Debug, Deserialize)]
+#[derive(Clone, Deserialize)]
 #[config_example_generator(
-	filename = "matron-server-example.toml",
+	filename = "tuwunel-example.toml",
 	section = "global",
 	undocumented = "# This item is undocumented. Please contribute documentation for it.",
-	header = r#"### Matron Server Configuration
+	header = r#"### Tuwunel Configuration
 ###
 ### THIS FILE IS GENERATED. CHANGES/CONTRIBUTIONS IN THE REPO WILL BE
 ### OVERWRITTEN!
@@ -56,7 +64,7 @@ use crate::{
 ### that say "YOU NEED TO EDIT THIS".
 ###
 ### For more information, see:
-### https://matron.chat/configuration.html
+### https://tuwunel.chat/configuration.html
 "#,
 	ignore = "catchall well_known tls blurhashing allow_invalid_tls_certificates ldap jwt \
 	          appservice identity_provider storage_provider"
@@ -66,7 +74,7 @@ pub struct Config {
 	/// suffix for user and room IDs/aliases.
 	///
 	/// See the docs for reverse proxying and delegation:
-	/// https://matron.chat/deploying/generic.html#setting-up-the-reverse-proxy
+	/// https://tuwunel.chat/deploying/generic.html#setting-up-the-reverse-proxy
 	///
 	/// Also see the `[global.well_known]` config section at the very bottom.
 	///
@@ -77,14 +85,14 @@ pub struct Config {
 	/// YOU NEED TO EDIT THIS. THIS CANNOT BE CHANGED AFTER WITHOUT A DATABASE
 	/// WIPE.
 	///
-	/// example: "example.com"
+	/// example: "girlboss.ceo"
 	#[cfg_attr(test, serde(default = "default_server_name"))]
 	pub server_name: OwnedServerName,
 
-	/// This is the only directory where matron-server will save its data, including
+	/// This is the only directory where tuwunel will save its data, including
 	/// media. Note: this was previously "/var/lib/matrix-conduit".
 	///
-	/// default: "/var/lib/matron-server"
+	/// default: "/var/lib/tuwunel"
 	#[serde(default = "default_database_path")]
 	pub database_path: PathBuf,
 
@@ -94,12 +102,12 @@ pub struct Config {
 	///
 	/// To disable, set this to "" (an empty string).
 	///
-	/// default: ""
+	/// default: "💕"
 	#[serde(default = "default_new_user_displayname_suffix")]
 	pub new_user_displayname_suffix: String,
 
 	#[expect(clippy::doc_link_with_quotes)]
-	/// The default address (IPv4 or IPv6) matron-server will listen on.
+	/// The default address (IPv4 or IPv6) tuwunel will listen on.
 	///
 	/// If you are using Docker or a container NAT networking setup, this must
 	/// be "0.0.0.0".
@@ -111,10 +119,10 @@ pub struct Config {
 	#[serde(default)]
 	address: Option<ListeningAddr>,
 
-	/// The port(s) matron-server will listen on.
+	/// The port(s) tuwunel will listen on.
 	///
 	/// For reverse proxying, see:
-	/// https://matron.chat/deploying/generic.html#setting-up-the-reverse-proxy
+	/// https://tuwunel.chat/deploying/generic.html#setting-up-the-reverse-proxy
 	///
 	/// If you are using Docker, don't change this, you'll need to map an
 	/// external port to this.
@@ -129,13 +137,13 @@ pub struct Config {
 	#[serde(default)]
 	pub tls: TlsConfig,
 
-	/// The UNIX socket matron-server will listen on.
+	/// The UNIX socket tuwunel will listen on.
 	///
 	/// Remember to make sure that your reverse proxy has access to this socket
-	/// file, either by adding your reverse proxy to the 'matron-server' group or
+	/// file, either by adding your reverse proxy to the 'tuwunel' group or
 	/// granting world R/W permissions with `unix_socket_perms` (666 minimum).
 	///
-	/// example: "/run/matron-server/matron-server.sock"
+	/// example: "/run/tuwunel/tuwunel.sock"
 	pub unix_socket_path: Option<PathBuf>,
 
 	/// The default permissions (in octal) to create the UNIX socket with.
@@ -144,7 +152,7 @@ pub struct Config {
 	#[serde(default = "default_unix_socket_perms")]
 	pub unix_socket_perms: u32,
 
-	/// Error on startup if any config option specified is unknown to Matron Server.
+	/// Error on startup if any config option specified is unknown to Tuwunel.
 	///
 	/// This is false by default to allow easier deprecation or removal of
 	/// config options in the future without breaking existing deployments. The
@@ -152,14 +160,14 @@ pub struct Config {
 	#[serde(default)]
 	pub error_on_unknown_config_opts: bool,
 
-	/// matron-server supports online database backups using RocksDB's Backup engine
-	/// API. To use this, set a database backup path that matron-server can write
+	/// tuwunel supports online database backups using RocksDB's Backup engine
+	/// API. To use this, set a database backup path that tuwunel can write
 	/// to.
 	///
 	/// For more information, see:
-	/// https://matron.chat/maintenance.html#backups
+	/// https://tuwunel.chat/maintenance.html#backups
 	///
-	/// example: "/opt/matron-server-db-backups"
+	/// example: "/opt/tuwunel-db-backups"
 	pub database_backup_path: Option<PathBuf>,
 
 	/// The amount of online RocksDB database backups to keep/retain, if using
@@ -169,7 +177,7 @@ pub struct Config {
 	#[serde(default = "default_database_backups_to_keep")]
 	pub database_backups_to_keep: i16,
 
-	/// Set this to any float value to multiply matron-server's in-memory LRU caches
+	/// Set this to any float value to multiply tuwunel's in-memory LRU caches
 	/// with such as "auth_chain_cache_capacity".
 	///
 	/// May be useful if you have significant memory to spare to increase
@@ -187,7 +195,7 @@ pub struct Config {
 	)]
 	pub cache_capacity_modifier: f64,
 
-	/// Set this to any float value in megabytes for matron-server to tell the
+	/// Set this to any float value in megabytes for tuwunel to tell the
 	/// database engine that this much memory is available for database read
 	/// caches.
 	///
@@ -203,7 +211,7 @@ pub struct Config {
 	#[serde(default = "default_db_cache_capacity_mb")]
 	pub db_cache_capacity_mb: f64,
 
-	/// Set this to any float value in megabytes for matron-server to tell the
+	/// Set this to any float value in megabytes for tuwunel to tell the
 	/// database engine that this much memory is available for database write
 	/// caches.
 	///
@@ -255,9 +263,19 @@ pub struct Config {
 	#[serde(default = "default_stateinfo_cache_capacity")]
 	pub stateinfo_cache_capacity: u32,
 
-	/// default: varies by system
-	#[serde(default = "default_roomid_spacehierarchy_cache_capacity")]
-	pub roomid_spacehierarchy_cache_capacity: u32,
+	/// Minimum time-to-live in seconds for room summary entries in the spaces
+	/// cache.
+	///
+	/// default: 21600
+	#[serde(default = "default_spacehierarchy_cache_ttl_min")]
+	pub spacehierarchy_cache_ttl_min: u64,
+
+	/// Maximum time-to-live in seconds for room summary entries in the spaces
+	/// cache.
+	///
+	/// default: 129600
+	#[serde(default = "default_spacehierarchy_cache_ttl_max")]
+	pub spacehierarchy_cache_ttl_max: u64,
 
 	/// Minimum timeout a client can request for long-polling sync. Requests
 	/// will be clamped up to this value if smaller.
@@ -342,9 +360,9 @@ pub struct Config {
 	/// Enable using *only* TCP for querying your specified nameservers instead
 	/// of UDP.
 	///
-	/// If you are running matron-server in a container environment, this config
+	/// If you are running tuwunel in a container environment, this config
 	/// option may need to be enabled. For more details, see:
-	/// https://matron.chat/troubleshooting.html#potential-dns-issues-when-using-docker
+	/// https://tuwunel.chat/troubleshooting.html#potential-dns-issues-when-using-docker
 	#[serde(default)]
 	pub query_over_tcp_only: bool,
 
@@ -404,10 +422,14 @@ pub struct Config {
 	#[serde(default)]
 	pub dns_case_randomization: bool,
 
-	/// Max request size for file uploads in bytes.
+	/// Max request size for file uploads. Accepts an integer byte count or a
+	/// string with SI/IEC suffix such as "24 MiB".
 	///
 	/// default: 24 MiB
-	#[serde(default = "default_max_request_size")]
+	#[serde(
+		default = "default_max_request_size",
+		deserialize_with = "deserialize_bytesize_usize"
+	)]
 	pub max_request_size: usize,
 
 	/// Maximum number of concurrently pending (asynchronous) media uploads a
@@ -575,6 +597,40 @@ pub struct Config {
 	#[serde(default = "default_client_shutdown_timeout")]
 	pub client_shutdown_timeout: u64,
 
+	/// Source of the client IP address for rate limiting, logging, and
+	/// security tooling.
+	///
+	/// When unset (the default), the `ClientIp` extractor falls back to
+	/// `axum-client-ip`'s `InsecureClientIp` for backward compatibility;
+	/// clients can spoof their address via request headers in that mode.
+	///
+	/// When set, tuwunel installs `SecureClientIpSource` with the selected
+	/// variant and `ClientIp` resolves exclusively from that source. The
+	/// rightmost value is used for multi-valued headers; only the proxy can
+	/// append to the right, so this is resistant to client spoofing.
+	///
+	/// Supported values:
+	/// - "connect_info" - TCP peer address only (direct connections)
+	/// - "rightmost_x_forwarded_for" - nginx, Caddy
+	/// - "rightmost_forwarded" - RFC 7239 proxies
+	/// - "x_real_ip" - nginx `X-Real-IP`
+	/// - "cf_connecting_ip" - Cloudflare / cloudflared
+	/// - "true_client_ip" - Akamai, Cloudflare Enterprise
+	/// - "fly_client_ip" - Fly.io
+	/// - "cloudfront_viewer_address" - AWS CloudFront
+	///
+	/// On Unix-socket deployments, leave this unset rather than setting
+	/// "connect_info"; that source requires a TCP peer address.
+	///
+	/// WARNING: a header-based value without a trusted reverse proxy in
+	/// front of tuwunel allows clients to forge their IP. Changing this
+	/// value requires a server restart.
+	///
+	/// default: unset
+	/// config-example: "connect_info"
+	#[serde(default)]
+	pub ip_source: Option<IpSource>,
+
 	/// Grace period for clean shutdown of federation requests (seconds).
 	///
 	/// default: 5
@@ -615,9 +671,9 @@ pub struct Config {
 	/// tokens. Multiple tokens can be added if you separate them with
 	/// whitespace
 	///
-	/// matron-server must be able to access the file, and it must not be empty
+	/// tuwunel must be able to access the file, and it must not be empty
 	///
-	/// example: "/etc/matron-server/.reg_token"
+	/// example: "/etc/tuwunel/.reg_token"
 	pub registration_token_file: Option<PathBuf>,
 
 	/// Controls whether encrypted rooms and events are allowed.
@@ -764,12 +820,12 @@ pub struct Config {
 	pub allow_room_creation: bool,
 
 	/// Set to false to disable users from joining or creating room versions
-	/// that aren't officially supported by matron-server. Unstable room versions may
+	/// that aren't officially supported by tuwunel. Unstable room versions may
 	/// have flawed specifications or our implementation may be non-conforming.
 	/// Correct operation may not be guaranteed, but incorrect operation may be
 	/// tolerable and unnoticed.
 	///
-	/// matron-server officially supports room versions 6+. matron-server has slightly
+	/// tuwunel officially supports room versions 6+. tuwunel has slightly
 	/// experimental (though works fine in practice) support for versions 3 - 5.
 	///
 	/// default: true
@@ -785,7 +841,7 @@ pub struct Config {
 	#[serde(default)]
 	pub allow_experimental_room_versions: bool,
 
-	/// Default room version matron-server will create rooms with.
+	/// Default room version tuwunel will create rooms with.
 	///
 	/// The default is prescribed by the spec, but may be selected by developer
 	/// recommendation. To prevent stale documentation we no longer list it
@@ -861,7 +917,7 @@ pub struct Config {
 	/// Servers listed here will be used to gather public keys of other servers
 	/// (notary trusted key servers).
 	///
-	/// Currently, matron-server doesn't support inbound batched key requests, so
+	/// Currently, tuwunel doesn't support inbound batched key requests, so
 	/// this list should only contain other Synapse servers.
 	///
 	/// example: ["matrix.org", "tchncs.de"]
@@ -913,7 +969,7 @@ pub struct Config {
 	#[serde(default = "default_trusted_server_batch_concurrency")]
 	pub trusted_server_batch_concurrency: usize,
 
-	/// Max log level for matron-server. Allows debug, info, warn, or error.
+	/// Max log level for tuwunel. Allows debug, info, warn, or error.
 	///
 	/// See also:
 	/// https://docs.rs/tracing-subscriber/latest/tracing_subscriber/filter/struct.EnvFilter.html#directives
@@ -942,7 +998,7 @@ pub struct Config {
 	#[serde(default = "default_log_span_events")]
 	pub log_span_events: String,
 
-	/// Configures whether MATRON_SERVER_LOG EnvFilter matches values using regular
+	/// Configures whether TUWUNEL_LOG EnvFilter matches values using regular
 	/// expressions. See the tracing_subscriber documentation on Directives.
 	///
 	/// default: true
@@ -1089,7 +1145,7 @@ pub struct Config {
 	/// This takes priority over "turn_secret" first, and falls back to
 	/// "turn_secret" if invalid or failed to open.
 	///
-	/// example: "/etc/matron-server/.turn_secret"
+	/// example: "/etc/tuwunel/.turn_secret"
 	pub turn_secret_file: Option<PathBuf>,
 
 	/// TURN TTL, in seconds.
@@ -1099,11 +1155,11 @@ pub struct Config {
 	pub turn_ttl: u64,
 
 	#[expect(clippy::doc_link_with_quotes)]
-	/// List/vector of room IDs or room aliases that matron-server will make newly
+	/// List/vector of room IDs or room aliases that tuwunel will make newly
 	/// registered users join. The rooms specified must be rooms that you have
 	/// joined at least once on the server, and must be public.
 	///
-	/// example: ["#matron:matron.chat",
+	/// example: ["#tuwunel:grin.hu",
 	/// "!l2xV0sd51lraysuRcsWVECge4NULaH3g-ou95vgDgiM"]
 	///
 	/// default: []
@@ -1129,9 +1185,9 @@ pub struct Config {
 	#[serde(default)]
 	pub auto_deactivate_banned_room_attempts: bool,
 
-	/// RocksDB log level. This is not the same as matron-server's log level. This
+	/// RocksDB log level. This is not the same as tuwunel's log level. This
 	/// is the log level for the RocksDB engine/library which show up in your
-	/// database folder/path as `LOG` files. matron-server will log RocksDB errors
+	/// database folder/path as `LOG` files. tuwunel will log RocksDB errors
 	/// as normal through tracing or panics if severe for safety.
 	///
 	/// default: "error"
@@ -1141,11 +1197,14 @@ pub struct Config {
 	#[serde(default)]
 	pub rocksdb_log_stderr: bool,
 
-	/// Max RocksDB `LOG` file size before rotating in bytes. Defaults to 4MB in
-	/// bytes.
+	/// Max RocksDB `LOG` file size before rotating. Accepts an integer byte
+	/// count or a string with SI/IEC suffix such as "4 MiB".
 	///
 	/// default: 4194304
-	#[serde(default = "default_rocksdb_max_log_file_size")]
+	#[serde(
+		default = "default_rocksdb_max_log_file_size",
+		deserialize_with = "deserialize_bytesize_usize"
+	)]
 	pub rocksdb_max_log_file_size: usize,
 
 	/// Time in seconds before RocksDB will forcibly rotate logs.
@@ -1157,7 +1216,7 @@ pub struct Config {
 	/// Set this to true to use RocksDB config options that are tailored to HDDs
 	/// (slower device storage).
 	///
-	/// It is worth noting that by default, matron-server will use RocksDB with
+	/// It is worth noting that by default, tuwunel will use RocksDB with
 	/// Direct IO enabled. *Generally* speaking this improves performance as it
 	/// bypasses buffered I/O (system page cache). However there is a potential
 	/// chance that Direct IO may cause issues with database operations if your
@@ -1165,7 +1224,7 @@ pub struct Config {
 	/// possibly ZFS filesystem. RocksDB generally deals/corrects these issues
 	/// but it cannot account for all setups. If you experience any weird
 	/// RocksDB issues, try enabling this option as it turns off Direct IO and
-	/// feel free to report in the matron-server Matrix room if this option fixes
+	/// feel free to report in the tuwunel Matrix room if this option fixes
 	/// your DB issues.
 	///
 	/// For more information, see:
@@ -1226,7 +1285,7 @@ pub struct Config {
 	/// as they all differ. See their `kDefaultCompressionLevel`.
 	///
 	/// Note when using the default value we may override it with a setting
-	/// tailored specifically matron-server.
+	/// tailored specifically tuwunel.
 	///
 	/// default: 32767
 	#[serde(default = "default_rocksdb_compression_level")]
@@ -1244,7 +1303,7 @@ pub struct Config {
 	/// algorithm.
 	///
 	/// Note when using the default value we may override it with a setting
-	/// tailored specifically matron-server.
+	/// tailored specifically tuwunel.
 	///
 	/// default: 32767
 	#[serde(default = "default_rocksdb_bottommost_compression_level")]
@@ -1286,13 +1345,13 @@ pub struct Config {
 	/// 0 = AbsoluteConsistency
 	/// 1 = TolerateCorruptedTailRecords (default)
 	/// 2 = PointInTime (use me if trying to recover)
-	/// 3 = SkipAnyCorruptedRecord (you now voided your matron-server warranty)
+	/// 3 = SkipAnyCorruptedRecord (you now voided your tuwunel warranty)
 	///
 	/// For more information on these modes, see:
 	/// https://github.com/facebook/rocksdb/wiki/WAL-Recovery-Modes
 	///
 	/// For more details on recovering a corrupt database, see:
-	/// https://matron.chat/troubleshooting.html#database-corruption
+	/// https://tuwunel.chat/troubleshooting.html#database-corruption
 	///
 	/// default: 1
 	#[serde(default = "default_rocksdb_recovery_mode")]
@@ -1336,7 +1395,7 @@ pub struct Config {
 	/// - Disabling repair mode and restarting the server is recommended after
 	///   running the repair.
 	///
-	/// See https://matron.chat/troubleshooting.html#database-corruption for more details on recovering a corrupt database.
+	/// See https://tuwunel.chat/troubleshooting.html#database-corruption for more details on recovering a corrupt database.
 	#[serde(default)]
 	pub rocksdb_repair: bool,
 
@@ -1361,7 +1420,7 @@ pub struct Config {
 	/// Enables RocksDB compaction. You should never ever have to set this
 	/// option to false. If you for some reason find yourself needing to use
 	/// this option as part of troubleshooting or a bug, please reach out to us
-	/// in the matron-server Matrix room with information and details.
+	/// in the tuwunel Matrix room with information and details.
 	///
 	/// Disabling compaction will lead to a significantly bloated and
 	/// explosively large database, gradually poor performance, unnecessarily
@@ -1418,7 +1477,7 @@ pub struct Config {
 	/// purposes such as recovering/recreating your admin room, or inviting
 	/// yourself back.
 	///
-	/// See https://matron.chat/troubleshooting.html#lost-access-to-admin-room
+	/// See https://tuwunel.chat/troubleshooting.html#lost-access-to-admin-room
 	/// for other ways to get back into your admin room.
 	///
 	/// Once this password is unset, all sessions will be logged out for
@@ -1459,7 +1518,7 @@ pub struct Config {
 
 	/// Allow local (your server only) presence updates/requests.
 	///
-	/// Note that presence on matron-server is very fast unlike Synapse's. If using
+	/// Note that presence on tuwunel is very fast unlike Synapse's. If using
 	/// outgoing presence, this MUST be enabled.
 	#[serde(default = "true_fn")]
 	pub allow_local_presence: bool,
@@ -1468,7 +1527,7 @@ pub struct Config {
 	///
 	/// This option receives presence updates from other servers, but does not
 	/// send any unless `allow_outgoing_presence` is true. Note that presence on
-	/// matron-server is very fast unlike Synapse's.
+	/// tuwunel is very fast unlike Synapse's.
 	#[serde(default = "true_fn")]
 	pub allow_incoming_presence: bool,
 
@@ -1476,7 +1535,7 @@ pub struct Config {
 	///
 	/// This option sends presence updates to other servers, but does not
 	/// receive any unless `allow_incoming_presence` is true. Note that presence
-	/// on matron-server is very fast unlike Synapse's. If using outgoing presence,
+	/// on tuwunel is very fast unlike Synapse's. If using outgoing presence,
 	/// you MUST enable `allow_local_presence` as well.
 	#[serde(default = "true_fn")]
 	pub allow_outgoing_presence: bool,
@@ -1551,8 +1610,8 @@ pub struct Config {
 	#[serde(default = "default_typing_client_timeout_max_s")]
 	pub typing_client_timeout_max_s: u64,
 
-	/// Set this to true for matron-server to compress HTTP response bodies using
-	/// zstd. This option does nothing if matron-server was not built with
+	/// Set this to true for tuwunel to compress HTTP response bodies using
+	/// zstd. This option does nothing if tuwunel was not built with
 	/// `zstd_compression` feature. Please be aware that enabling HTTP
 	/// compression may weaken TLS. Most users should not need to enable this.
 	/// See https://breachattack.com/ and https://wikipedia.org/wiki/BREACH
@@ -1560,8 +1619,8 @@ pub struct Config {
 	#[serde(default)]
 	pub zstd_compression: bool,
 
-	/// Set this to true for matron-server to compress HTTP response bodies using
-	/// gzip. This option does nothing if matron-server was not built with
+	/// Set this to true for tuwunel to compress HTTP response bodies using
+	/// gzip. This option does nothing if tuwunel was not built with
 	/// `gzip_compression` feature. Please be aware that enabling HTTP
 	/// compression may weaken TLS. Most users should not need to enable this.
 	/// See https://breachattack.com/ and https://wikipedia.org/wiki/BREACH before
@@ -1572,8 +1631,8 @@ pub struct Config {
 	#[serde(default)]
 	pub gzip_compression: bool,
 
-	/// Set this to true for matron-server to compress HTTP response bodies using
-	/// brotli. This option does nothing if matron-server was not built with
+	/// Set this to true for tuwunel to compress HTTP response bodies using
+	/// brotli. This option does nothing if tuwunel was not built with
 	/// `brotli_compression` feature. Please be aware that enabling HTTP
 	/// compression may weaken TLS. Most users should not need to enable this.
 	/// See https://breachattack.com/ and https://wikipedia.org/wiki/BREACH
@@ -1621,7 +1680,7 @@ pub struct Config {
 
 	/// Check consistency of the media directory at startup:
 	/// 1. When `media_compat_file_link` is enabled, this check will upgrade
-	///    media when switching back and forth between Conduit and matron-server. Both
+	///    media when switching back and forth between Conduit and tuwunel. Both
 	///    options must be enabled to handle this.
 	/// 2. When media is deleted from the directory, this check will also delete
 	///    its database entry.
@@ -1639,7 +1698,7 @@ pub struct Config {
 	/// Otherwise setting this to false reduces filesystem clutter and overhead
 	/// for managing these symlinks in the directory. This is now disabled by
 	/// default. You may still return to upstream Conduit but you have to run
-	/// matron-server at least once with this set to true and allow the
+	/// tuwunel at least once with this set to true and allow the
 	/// media_startup_check to take place before shutting down to return to
 	/// Conduit.
 	#[serde(default)]
@@ -1696,7 +1755,7 @@ pub struct Config {
 	#[serde(default)]
 	pub store_media_on_providers: BTreeSet<String>,
 
-	/// Vector list of regex patterns of server names that matron-server will refuse
+	/// Vector list of regex patterns of server names that tuwunel will refuse
 	/// to download remote media from.
 	///
 	/// example: ["badserver\.tld$", "badphrase", "19dollarfortnitecards"]
@@ -1721,6 +1780,10 @@ pub struct Config {
 	#[serde(default, with = "serde_regex")]
 	pub forbidden_remote_server_names: RegexSet,
 
+	/// (EXPERIMENTAL) The behavior of this option will change; the
+	/// _experimental suffix will be removed for that change in an upcoming
+	/// release.
+	///
 	/// List of allowed server names via regex patterns. This is an allow-list
 	/// rather than a deny-list with all the same details as its counterpart in
 	/// `forbidden_remote_server_names`.
@@ -1736,7 +1799,7 @@ pub struct Config {
 	///
 	/// default: []
 	#[serde(default, with = "serde_regex")]
-	pub allowed_remote_server_names: RegexSet,
+	pub allowed_remote_server_names_experimental: RegexSet,
 
 	/// List of forbidden server names via regex patterns that we will block all
 	/// outgoing federated room directory requests for. Useful for preventing
@@ -1750,7 +1813,7 @@ pub struct Config {
 
 	#[expect(clippy::doc_link_with_quotes)]
 	/// Vector list of IPv4 and IPv6 CIDR ranges / subnets *in quotes* that you
-	/// do not want matron-server to send outbound requests to. Defaults to
+	/// do not want tuwunel to send outbound requests to. Defaults to
 	/// RFC1918, unroutable, loopback, multicast, and testnet addresses for
 	/// security.
 	///
@@ -1838,11 +1901,14 @@ pub struct Config {
 	#[serde(default)]
 	pub url_preview_url_contains_allowlist: Vec<String>,
 
-	/// Maximum amount of bytes allowed in a URL preview body size when
-	/// spidering. Defaults to 256KB in bytes.
+	/// Maximum body size allowed when spidering a URL for previews. Accepts an
+	/// integer byte count or a string with SI/IEC suffix such as "256 KB".
 	///
 	/// default: 256000
-	#[serde(default = "default_url_preview_max_spider_size")]
+	#[serde(
+		default = "default_url_preview_max_spider_size",
+		deserialize_with = "deserialize_bytesize_usize"
+	)]
 	pub url_preview_max_spider_size: usize,
 
 	/// Option to decide whether you would like to run the domain allowlist
@@ -1953,29 +2019,29 @@ pub struct Config {
 
 	/// Allow admins to enter commands in rooms other than "#admins" (admin
 	/// room) by prefixing your message with "\!admin" or "\\!admin" followed up
-	/// a normal matron-server admin command. The reply will be publicly visible to
+	/// a normal tuwunel admin command. The reply will be publicly visible to
 	/// the room, originating from the sender.
 	///
-	/// example: \\!admin debug ping example.com
+	/// example: \\!admin debug ping puppygock.gay
 	#[serde(default = "true_fn")]
 	pub admin_escape_commands: bool,
 
-	/// Automatically activate the matron-server admin room console / CLI on
-	/// startup. This option can also be enabled with `--console`
-	/// matron-server argument.
+	/// Automatically activate the tuwunel admin room console / CLI on
+	/// startup. This option can also be enabled with `--console` tuwunel
+	/// argument.
 	#[serde(default)]
 	pub admin_console_automatic: bool,
 
 	#[expect(clippy::doc_link_with_quotes)]
 	/// List of admin commands to execute on startup.
 	///
-	/// This option can also be configured with the `--execute`
-	/// matron-server argument and can take standard shell commands and environment variables
+	/// This option can also be configured with the `--execute` tuwunel
+	/// argument and can take standard shell commands and environment variables
 	///
-	/// For example: `./matron-server --execute "server admin-notice matron-server has
+	/// For example: `./tuwunel --execute "server admin-notice tuwunel has
 	/// started up at $(date)"`
 	///
-	/// example: admin_execute = ["debug ping example.com", "debug echo hi"]`
+	/// example: admin_execute = ["debug ping puppygock.gay", "debug echo hi"]`
 	///
 	/// default: []
 	#[serde(default)]
@@ -1983,7 +2049,7 @@ pub struct Config {
 
 	/// Ignore errors in startup commands.
 	///
-	/// If false, matron-server will error and fail to start if an admin execute
+	/// If false, tuwunel will error and fail to start if an admin execute
 	/// command (`--execute` / `admin_execute`) fails.
 	#[serde(default)]
 	pub admin_execute_errors_ignore: bool,
@@ -2008,7 +2074,7 @@ pub struct Config {
 	/// The default room tag to apply on the admin room.
 	///
 	/// On some clients like Element, the room tag "m.server_notice" is a
-	/// special pinned room at the very bottom of your room list. The matron-server
+	/// special pinned room at the very bottom of your room list. The tuwunel
 	/// admin room can be pinned here so you always have an easy-to-access
 	/// shortcut dedicated to your admin room.
 	///
@@ -2041,7 +2107,7 @@ pub struct Config {
 	pub federate_admin_room: bool,
 
 	/// Sentry.io crash/panic reporting, performance monitoring/metrics, etc.
-	/// This is NOT enabled by default. matron-server's default Sentry reporting
+	/// This is NOT enabled by default. tuwunel's default Sentry reporting
 	/// endpoint domain is `o4509498990067712.ingest.us.sentry.io`.
 	#[serde(default)]
 	pub sentry: bool,
@@ -2053,7 +2119,7 @@ pub struct Config {
 	#[serde(default = "default_sentry_endpoint")]
 	pub sentry_endpoint: Option<Url>,
 
-	/// Report your matron-server server_name in Sentry.io crash reports and
+	/// Report your tuwunel server_name in Sentry.io crash reports and
 	/// metrics.
 	#[serde(default)]
 	pub sentry_send_server_name: bool,
@@ -2094,7 +2160,7 @@ pub struct Config {
 	/// Enable the tokio-console. This option is only relevant to developers.
 	///
 	///	For more information, see:
-	/// https://matron.chat/development.html#debugging-with-tokio-console
+	/// https://tuwunel.chat/development.html#debugging-with-tokio-console
 	#[serde(default)]
 	pub tokio_console: bool,
 
@@ -2373,15 +2439,60 @@ pub struct Config {
 	#[serde(default)]
 	pub sso_custom_providers_page: bool,
 
-	/// Under development; do not enable.
-	#[serde(default)]
-	pub sso_aware_preferred: bool,
+	/// From MSC3824:
+	/// > If the client finds oauth_aware_preferred to be true then, assuming it
+	/// > supports that auth type, it should present this as the only
+	/// > login/registration method available to the user.
+	#[serde(default, alias = "sso_aware_preferred")]
+	pub oidc_aware_preferred: bool,
 
 	/// Directory containing appservice yaml registration files.
 	///
 	/// default: ""
 	#[serde(default)]
 	pub appservice_dir: Option<PathBuf>,
+
+	/// Skip database migration on startup. This option is intended for
+	/// developer debugging and testing only. Never set this option to false
+	/// unless you have been instructed to do so. Setting this option to false
+	/// may cause permanent damage and permanent loss of data.
+	///
+	/// Any new database migrations will not be applied on startup, and the
+	/// database schema version will not be adjusted. These migrations and
+	/// schema changes may be expected by the current codebase but may not be
+	/// available when this option is set to false.
+	///
+	/// Setting this option to false will have no effect if no new migrations
+	/// are to be applied. New migrations are applied once during any execution
+	/// where this option is set to true (which is the default).
+	#[serde(default = "true_fn")]
+	pub database_migrations: bool,
+
+	/// Force the database to set its version to the current version known to
+	/// the executable.
+	///
+	/// - When the discovered version is less than the current version any
+	///   migrations are applied normally.
+	/// - When the discovered version is equal to the current version,
+	///   unversioned migrations are applied normally.
+	/// - When the discovered database version is greater than the current
+	///   version, one-time migrations are applied normally and the discoverable
+	///   version is regressed back to the current version.
+	///
+	/// This option extremely dangerous and intended for developer debugging and
+	/// testing only. Never set this option unless you have been instructed to
+	/// do so. Setting this option may cause permanent damage and permanent loss
+	/// of data.
+	#[serde(default)]
+	pub force_migration: bool,
+
+	/// Set this to true for excluding unencrypted rooms from the common-rooms
+	/// calculation deciding the receivers of device list updates.
+	///
+	/// Setting this to true can help performance on very large homeservers,
+	/// but it may not be spec compliant and risky for client expectations.
+	#[serde(default)]
+	pub device_key_update_encrypted_rooms_only: bool,
 
 	// external structure; separate section
 	#[serde(default)]
@@ -2414,7 +2525,7 @@ pub struct Config {
 }
 
 #[derive(Clone, Debug, Deserialize, Default)]
-#[config_example_generator(filename = "matron-server-example.toml", section = "global.tls")]
+#[config_example_generator(filename = "tuwunel-example.toml", section = "global.tls")]
 pub struct TlsConfig {
 	/// Path to a valid TLS certificate file.
 	///
@@ -2431,10 +2542,10 @@ pub struct TlsConfig {
 	pub dual_protocol: bool,
 }
 
-#[expect(rustdoc::broken_intra_doc_links, rustdoc::bare_urls)]
+#[expect(rustdoc::bare_urls)]
 #[derive(Clone, Debug, Deserialize, Default)]
 #[config_example_generator(
-	filename = "matron-server-example.toml",
+	filename = "tuwunel-example.toml",
 	section = "global.well_known"
 )]
 pub struct WellKnownConfig {
@@ -2508,9 +2619,9 @@ pub struct WellKnownConfig {
 }
 
 #[derive(Clone, Copy, Debug, Deserialize, Default)]
-#[expect(rustdoc::broken_intra_doc_links, rustdoc::bare_urls)]
+#[expect(rustdoc::bare_urls)]
 #[config_example_generator(
-	filename = "matron-server-example.toml",
+	filename = "tuwunel-example.toml",
 	section = "global.blurhashing"
 )]
 pub struct BlurhashConfig {
@@ -2527,16 +2638,20 @@ pub struct BlurhashConfig {
 	/// Max raw size that the server will blurhash, this is the size of the
 	/// image after converting it to raw data, it should be higher than the
 	/// upload limit but not too high. The higher it is the higher the
-	/// potential load will be for clients requesting blurhashes. The default
-	/// is 33.55MB. Setting it to 0 disables blurhashing.
+	/// potential load will be for clients requesting blurhashes. Accepts an
+	/// integer byte count or a string with SI/IEC suffix such as "32 MiB".
+	/// Setting it to 0 disables blurhashing.
 	///
 	/// default: 33554432
-	#[serde(default = "default_blurhash_max_raw_size")]
+	#[serde(
+		default = "default_blurhash_max_raw_size",
+		deserialize_with = "deserialize_bytesize_u64"
+	)]
 	pub blurhash_max_raw_size: u64,
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]
-#[config_example_generator(filename = "matron-server-example.toml", section = "global.ldap")]
+#[config_example_generator(filename = "tuwunel-example.toml", section = "global.ldap")]
 pub struct LdapConfig {
 	/// Whether to enable LDAP login.
 	///
@@ -2618,7 +2733,7 @@ pub struct LdapConfig {
 	#[serde(default)]
 	pub admin_base_dn: String,
 
-	/// The LDAP search filter to find administrative users for matron-server.
+	/// The LDAP search filter to find administrative users for tuwunel.
 	///
 	/// If left blank, administrative state must be configured manually for each
 	/// user.
@@ -2626,7 +2741,7 @@ pub struct LdapConfig {
 	/// You can use the variable `{username}` that will be replaced by the
 	/// entered username for more complex filters.
 	///
-	/// example: "(objectClass=matronServerAdmin)" or "(uid={username})"
+	/// example: "(objectClass=tuwunelAdmin)" or "(uid={username})"
 	///
 	/// default:
 	#[serde(default)]
@@ -2634,7 +2749,7 @@ pub struct LdapConfig {
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]
-#[config_example_generator(filename = "matron-server-example.toml", section = "global.jwt")]
+#[config_example_generator(filename = "tuwunel-example.toml", section = "global.jwt")]
 pub struct JwtConfig {
 	/// Enable JWT logins
 	///
@@ -2729,7 +2844,7 @@ pub struct JwtConfig {
 
 #[derive(Clone, Debug, Deserialize)]
 #[config_example_generator(
-	filename = "matron-server-example.toml",
+	filename = "tuwunel-example.toml",
 	section = "[global.identity_provider]"
 )]
 pub struct IdentityProvider {
@@ -2772,7 +2887,7 @@ pub struct IdentityProvider {
 	/// This takes priority over "client_secret" first, and falls back to
 	/// "client_secret" if invalid or failed to open.
 	///
-	/// example: "/etc/matron-server/.client_secret"
+	/// example: "/etc/tuwunel/.client_secret"
 	pub client_secret_file: Option<PathBuf>,
 
 	/// Issuer URL the provider publishes for you. We have pre-supplied default
@@ -2785,7 +2900,7 @@ pub struct IdentityProvider {
 	pub issuer_url: Option<Url>,
 
 	/// The callback URL configured when registering the OAuth application with
-	/// the provider. Matron Server's callback URL must be strictly formatted exactly
+	/// the provider. Tuwunel's callback URL must be strictly formatted exactly
 	/// as instructed. The URL host must point directly at the matrix server and
 	/// use the following path:
 	/// `/_matrix/client/unstable/login/sso/callback/<client_id>` where
@@ -2837,7 +2952,7 @@ pub struct IdentityProvider {
 	pub scope: BTreeSet<String>,
 
 	/// Optional list of userinfo claims which shape and restrict the way we
-	/// compute a Matrix UserId for new registrations. Reviewing Matron Server's
+	/// compute a Matrix UserId for new registrations. Reviewing Tuwunel's
 	/// documentation will be necessary for a complete description in detail. An
 	/// empty array imposes no restriction here, avoiding generated fallbacks as
 	/// much as possible.
@@ -2986,14 +3101,16 @@ impl IdentityProvider {
 pub enum StorageProvider {
 	#[expect(non_camel_case_types)]
 	local(StorageProviderLocal),
-	S3(StorageProviderS3),
+	#[expect(non_camel_case_types)]
+	#[serde(rename = "s3", alias = "S3")]
+	s3(StorageProviderS3),
 	#[default]
 	None,
 }
 
 #[derive(Clone, Debug, Default, Deserialize)]
 #[config_example_generator(
-	filename = "matron-server-example.toml",
+	filename = "tuwunel-example.toml",
 	section = "global.storage_provider.<ID>.local"
 )]
 pub struct StorageProviderLocal {
@@ -3024,11 +3141,11 @@ pub struct StorageProviderLocal {
 
 #[derive(Clone, Debug, Default, Deserialize)]
 #[config_example_generator(
-	filename = "matron-server-example.toml",
-	section = "global.storage_provider.<ID>.S3"
+	filename = "tuwunel-example.toml",
+	section = "global.storage_provider.<ID>.s3"
 )]
 pub struct StorageProviderS3 {
-	/// Supply an s3 URL e.g. "s3://<bucket>/<path>". These URLs may contain one
+	/// Supply an s3 URL e.g. "s3://bucket/path". These URLs may contain one
 	/// or all of `bucket`, `region`, and `path` . When not supplied, such
 	/// additional items can be supplied below individually.
 	pub url: Option<String>,
@@ -3081,6 +3198,16 @@ pub struct StorageProviderS3 {
 	/// (expert use) When configured for the bucket it should be reflected here.
 	pub use_bucket_key: Option<bool>,
 
+	/// (expert use) Threshold size for switching to Multi-part uploads. This is
+	/// a quirk of the S3 protocol which requires us to use a different approach
+	/// for "large" uploads. This value determines what a "large" upload is. The
+	/// default value should be sufficient for most providers. The value is a
+	/// parsed string allowing SI or IEC units for convenience.
+	///
+	/// default: 100 MiB
+	#[serde(default = "default_multipart_threshold")]
+	pub multipart_threshold: ByteSize,
+
 	/// (developer use) Allows relaxing default requirement forcing HTTPS.
 	///
 	/// default: true
@@ -3116,7 +3243,7 @@ pub struct StorageProviderS3 {
 
 #[derive(Clone, Debug, Default, Deserialize)]
 #[config_example_generator(
-	filename = "matron-server-example.toml",
+	filename = "tuwunel-example.toml",
 	section = "global.appservice.<ID>",
 	ignore = "id users aliases rooms"
 )]
@@ -3214,7 +3341,7 @@ impl From<AppService> for ruma::api::appservice::Registration {
 
 #[derive(Clone, Debug, Default, Deserialize)]
 #[config_example_generator(
-	filename = "matron-server-example.toml",
+	filename = "tuwunel-example.toml",
 	section = "[global.appservice.<ID>.<users|rooms|aliases>]"
 )]
 pub struct AppServiceNamespace {
@@ -3258,7 +3385,6 @@ impl Config {
 			Env::var("CONDUIT_CONFIG"),
 			Env::var("CONDUWUIT_CONFIG"),
 			Env::var("TUWUNEL_CONFIG"),
-			Env::var("MATRON_SERVER_CONFIG"),
 		];
 
 		let toml_files = envs
@@ -3293,8 +3419,7 @@ impl Config {
 			.fold(Figment::new(), Figment::merge)
 			.merge(Env::prefixed("CONDUIT_").global().split("__"))
 			.merge(Env::prefixed("CONDUWUIT_").global().split("__"))
-			.merge(Env::prefixed("TUWUNEL_").global().split("__"))
-			.merge(Env::prefixed("MATRON_SERVER_").global().split("__"));
+			.merge(Env::prefixed("TUWUNEL_").global().split("__"));
 
 		Ok(config)
 	}
@@ -3333,7 +3458,7 @@ fn some_true_fn() -> Option<bool> { Some(true) }
 #[cfg(test)]
 fn default_server_name() -> OwnedServerName { ruma::owned_server_name!("localhost") }
 
-fn default_database_path() -> PathBuf { "/var/lib/matron-server".to_owned().into() }
+fn default_database_path() -> PathBuf { "/var/lib/tuwunel".to_owned().into() }
 
 fn default_port() -> ListeningPort { ListeningPort { ports: Left(8008) } }
 
@@ -3379,7 +3504,9 @@ fn default_servernameevent_data_cache_capacity() -> u32 {
 
 fn default_stateinfo_cache_capacity() -> u32 { parallelism_scaled_u32(100) }
 
-fn default_roomid_spacehierarchy_cache_capacity() -> u32 { parallelism_scaled_u32(1000) }
+fn default_spacehierarchy_cache_ttl_min() -> u64 { 60 * 60 * 3 }
+
+fn default_spacehierarchy_cache_ttl_max() -> u64 { 60 * 60 * 18 }
 
 fn default_dns_cache_entries() -> u32 { 32768 }
 
@@ -3556,7 +3683,7 @@ fn default_url_preview_max_spider_size() -> usize {
 	256_000 // 256KB
 }
 
-fn default_new_user_displayname_suffix() -> String { String::new() }
+fn default_new_user_displayname_suffix() -> String { "💕".to_owned() }
 
 fn default_sentry_endpoint() -> Option<Url> {
 	let url = "https://8994b1762a6a95af9502a7900edabc4c@o4509498990067712.ingest.us.sentry.io/4509498993213440"
@@ -3668,3 +3795,5 @@ fn default_sso_grant_session_duration() -> Option<u64> { Some(300) }
 fn default_redaction_retention_seconds() -> u64 { 5_184_000 }
 
 fn default_media_storage_providers() -> BTreeSet<String> { ["media".to_owned()].into() }
+
+fn default_multipart_threshold() -> ByteSize { ByteSize::mib(100) }

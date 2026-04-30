@@ -2,18 +2,18 @@
 
 [<= Back to Generic Deployment Guide](generic.md#quick-overview)
 
-It is possible to host matron-server on a subdomain such as `matrix.example.com` but delegate from `example.com` as the server name. This means that usernames will be `@user:example.com` rather than `@user:matrix.example.com`.
+It is possible to host tuwunel on a subdomain such as `matrix.example.com` but delegate from `example.com` as the server name. This means that usernames will be `@user:example.com` rather than `@user:matrix.example.com`.
 
-Federating servers and clients accessing matron-server at `example.com` will attempt to discover the subdomain by accessing the `example.com/.well-known/matrix/client` and `example.com/.well-known/matrix/server` endpoints. These need to be set up to point back to `matrix.example.com`.
+Federating servers and clients accessing tuwunel at `example.com` will attempt to discover the subdomain by accessing the `example.com/.well-known/matrix/client` and `example.com/.well-known/matrix/server` endpoints. These need to be set up to point back to `matrix.example.com`.
 
 > [!NOTE]  
-> In all of the following examples, replace `matrix.example.com` with the subdomain where matron-server is hosted, `<PORT>` with the external port for federation, and `example.com` with the domain you want to use as the public-facing homeserver.
+> In all of the following examples, replace `matrix.example.com` with the subdomain where tuwunel is hosted, `<PORT>` with the external port for federation, and `example.com` with the domain you want to use as the public-facing homeserver.
 
 ## Configuration
 
-Make sure the following are set in your [configuration file](<../configuration/examples.md#:~:text=### Matron Server Configuration>) or via [environment variables](../configuration.md#environment-variables):
+Make sure the following are set in your [configuration file](<../configuration/examples.md#:~:text=### Tuwunel Configuration>) or via [environment variables](../configuration.md#environment-variables):
 
-1. [Server name](<../configuration/examples.md#:~:text=# The server_name,#server_name>): set `MATRON_SERVER_SERVER_NAME=example.com` or in the configuration file:
+1. [Server name](<../configuration/examples.md#:~:text=# The server_name,#server_name>): set `TUWUNEL_SERVER_NAME=example.com` or in the configuration file:
     ```toml,hidelines=~
     [global]
     ~
@@ -21,7 +21,7 @@ Make sure the following are set in your [configuration file](<../configuration/e
     ~# suffix for user and room IDs/aliases.
     ~#
     ~# See the docs for reverse proxying and delegation:
-    ~# https://matron.chat/deploying/generic.html#setting-up-the-reverse-proxy
+    ~# https://tuwunel.chat/deploying/generic.html#setting-up-the-reverse-proxy
     ~#
     ~# Also see the `[global.well_known]` config section at the very bottom.
     ~#
@@ -32,11 +32,11 @@ Make sure the following are set in your [configuration file](<../configuration/e
     ~# YOU NEED TO EDIT THIS. THIS CANNOT BE CHANGED AFTER WITHOUT A DATABASE
     ~# WIPE.
     ~#
-    ~# example: "example.com"
+    ~# example: "girlboss.ceo"
     ~#
     server_name = example.com
     ```
-2. [Client-server URL](../configuration/examples.md#:~:text=#[global.well_known],#client): set `MATRON_SERVER_WELL_KNOWN__CLIENT=https://matrix.example.com` or in the configuration file:
+2. [Client-server URL](../configuration/examples.md#:~:text=#[global.well_known],#client): set `TUWUNEL_WELL_KNOWN__CLIENT=https://matrix.example.com` or in the configuration file:
     ```toml,hidelines=~
     [global.well_known]
     ~
@@ -47,7 +47,7 @@ Make sure the following are set in your [configuration file](<../configuration/e
     ~#
     client = https://matrix.example.com
     ```
-3. [Server-server federation domain and port](<../configuration/examples.md#:~:text=# The server base domain,#server>): where `<PORT>` is the external port for federation (default 8448, but often 443 when reverse proxying), set `MATRON_SERVER_WELL_KNOWN__SERVER=matrix.example.com:<PORT>` or in the configuration file:
+3. [Server-server federation domain and port](<../configuration/examples.md#:~:text=# The server base domain,#server>): where `<PORT>` is the external port for federation (default 8448, but often 443 when reverse proxying), set `TUWUNEL_WELL_KNOWN__SERVER=matrix.example.com:<PORT>` or in the configuration file:
     ```toml,hidelines=~
     [global.well_known]
     ~
@@ -69,7 +69,7 @@ Make sure the following are set in your [configuration file](<../configuration/e
 
 ## Serving `.well-known` endpoints
 
-With the above configuration, matron-server will generate and serve the appropriate `/.well-known/matrix` entries for delegation, so these can be served by reverse proxying `/.well-known/matrix` on `example.com` to matron-server. Alternatively, if `example.com` is not behind a reverse proxy, static JSON files can be served directly.
+With the above configuration, tuwunel will generate and serve the appropriate `/.well-known/matrix` entries for delegation, so these can be served by reverse proxying `/.well-known/matrix` on `example.com` to tuwunel. Alternatively, if `example.com` is not behind a reverse proxy, static JSON files can be served directly.
 
 ### Option 1: Static JSON files
 
@@ -95,7 +95,7 @@ At a minimum, the following JSON files should be created:
 These are example configurations if `example.com` is reverse-proxied behind Nginx or Caddy.
 
 > [!NOTE]  
-> Replace `matron-server` with the URL where matron-server is listening; this may look like `127.0.0.1:8008`, `matrix.example.com`, or `matron-server` if you declared an `upstream matron-server` block.
+> Replace `tuwunel` with the URL where tuwunel is listening; this may look like `127.0.0.1:8008`, `matrix.example.com`, or `tuwunel` if you declared an `upstream tuwunel` block.
 
 > [!IMPORTANT]  
 > These configurations need to be applied to the reverse proxy for `example.com`, **not** `matrix.example.com`.
@@ -121,7 +121,7 @@ server {
   server_name example.com;
 
   location /.well-known/matrix {
-    proxy_pass http://matron-server/.well-known/matrix;
+    proxy_pass http://tuwunel/.well-known/matrix;
     proxy_set_header X-Forwarded-For $remote_addr;
     proxy_ssl_server_name on;
   }

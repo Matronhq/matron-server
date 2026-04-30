@@ -5,7 +5,7 @@ use ruma::{
 	OwnedRoomId, UserId,
 	events::{StateEventType, room::power_levels::RoomPowerLevelsEventContent},
 };
-use matron_server_core::{Event, Result, info, pdu::PduBuilder, utils::ReadyExt, warn};
+use tuwunel_core::{Event, Result, info, pdu::PduBuilder, utils::ReadyExt, warn};
 
 pub struct Service {
 	services: Arc<crate::services::OnceServices>,

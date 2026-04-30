@@ -1,5 +1,4 @@
 use axum::extract::State;
-use axum_client_ip::InsecureClientIp;
 use base64::{Engine as _, engine::general_purpose};
 use futures::StreamExt;
 use ruma::{
@@ -16,14 +15,14 @@ use ruma::{
 	push,
 	serde::JsonObject,
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Error, Result, err, extract_variant,
 	matrix::{Event, PduCount, PduEvent, event::gen_event_id},
 	utils,
 	utils::hash::sha256,
 };
 
-use crate::Ruma;
+use crate::{ClientIp, Ruma};
 
 /// # `PUT /_matrix/federation/v2/invite/{roomId}/{eventId}`
 ///
@@ -31,7 +30,7 @@ use crate::Ruma;
 #[tracing::instrument(skip_all, fields(%client), name = "invite")]
 pub(crate) async fn create_invite_route(
 	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
+	ClientIp(client): ClientIp,
 	body: Ruma<create_invite::v2::Request>,
 ) -> Result<create_invite::v2::Response> {
 	// ACL check origin

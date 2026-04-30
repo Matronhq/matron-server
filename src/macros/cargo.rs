@@ -29,14 +29,14 @@ fn manifest_path(member: Option<&str>) -> Result<PathBuf> {
 
 	let mut path: PathBuf = path.into();
 
-	// matron-server/src/macros/ -> matron-server/src/
+	// tuwunel/src/macros/ -> tuwunel/src/
 	path.pop();
 
 	if let Some(member) = member {
-		// matron-server/$member/Cargo.toml
+		// tuwunel/$member/Cargo.toml
 		path.push(member);
 	} else {
-		// matron-server/src/ -> matron-server/
+		// tuwunel/src/ -> tuwunel/
 		path.pop();
 	}
 

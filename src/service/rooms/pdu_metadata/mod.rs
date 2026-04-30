@@ -6,7 +6,7 @@ use ruma::{
 	api::Direction,
 	events::{reaction::ReactionEventContent, relation::RelationType},
 };
-use matron_server_core::{
+use tuwunel_core::{
 	PduId, Result,
 	arrayvec::ArrayVec,
 	implement, is_equal_to,
@@ -18,7 +18,7 @@ use matron_server_core::{
 		u64_from_u8,
 	},
 };
-use matron_server_database::{Interfix, Map};
+use tuwunel_database::{Interfix, Map};
 
 use crate::rooms::short::ShortRoomId;
 

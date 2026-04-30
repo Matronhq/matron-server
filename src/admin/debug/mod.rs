@@ -3,8 +3,8 @@ pub(crate) mod tester;
 
 use clap::Subcommand;
 use ruma::{OwnedEventId, OwnedRoomId, OwnedRoomOrAliasId, OwnedServerName};
-use matron_server_core::Result;
-use matron_server_service::rooms::short::ShortRoomId;
+use tuwunel_core::Result;
+use tuwunel_service::rooms::short::ShortRoomId;
 
 use self::tester::TesterCommand;
 use crate::admin_command_dispatch;
@@ -32,13 +32,13 @@ pub(super) enum DebugCommand {
 	/// the command.
 	ParsePdu,
 
-	/// - Retrieve and print a PDU by EventID from the matron-server database
+	/// - Retrieve and print a PDU by EventID from the tuwunel database
 	GetPdu {
 		/// An event ID (a $ followed by the base64 reference hash)
 		event_id: OwnedEventId,
 	},
 
-	/// - Retrieve and print a PDU by PduId from the matron-server database
+	/// - Retrieve and print a PDU by PduId from the tuwunel database
 	GetShortPdu {
 		/// Shortroomid integer
 		shortroomid: ShortRoomId,
@@ -75,6 +75,12 @@ pub(super) enum DebugCommand {
 	GetRoomState {
 		/// Room ID
 		room_id: OwnedRoomOrAliasId,
+
+		/// Event Type
+		kind: Option<String>,
+
+		/// State Key
+		state_key: Option<String>,
 	},
 
 	/// - Get and display signing keys from local cache or remote server.
@@ -170,7 +176,7 @@ pub(super) enum DebugCommand {
 		server_name: OwnedServerName,
 	},
 
-	/// - Runs a server name through matron-server's true destination resolution
+	/// - Runs a server name through tuwunel's true destination resolution
 	///   process
 	///
 	/// Useful for debugging well-known issues
@@ -260,6 +266,11 @@ pub(super) enum DebugCommand {
 	/// - Retrieves the saved original PDU before it has been redacted
 	GetRetainedPdu {
 		event_id: OwnedEventId,
+	},
+
+	/// - Dump all stored PDUs
+	DumpPdus {
+		dir: String,
 	},
 
 	/// - Developer test stubs

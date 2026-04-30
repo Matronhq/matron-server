@@ -6,7 +6,7 @@ use ruma::{
 	api::{client::error::ErrorKind, federation::membership::prepare_knock_event},
 	events::room::member::{MembershipState, RoomMemberEventContent},
 };
-use matron_server_core::{Err, Error, Result, at, debug_warn, matrix::pdu::PduBuilder};
+use tuwunel_core::{Err, Error, Result, at, debug_warn, matrix::pdu::PduBuilder};
 
 use crate::Ruma;
 

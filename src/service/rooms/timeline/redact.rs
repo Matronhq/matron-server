@@ -2,7 +2,7 @@ use ruma::{
 	EventId, RoomId,
 	canonical_json::{RedactedBecause, redact_in_place},
 };
-use matron_server_core::{Result, err, implement, matrix::event::Event};
+use tuwunel_core::{Result, err, implement, matrix::event::Event};
 
 use crate::rooms::{short::ShortRoomId, timeline::RoomMutexGuard};
 

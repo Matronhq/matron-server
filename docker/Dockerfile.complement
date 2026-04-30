@@ -46,7 +46,7 @@ RUN [ -f certificate.crt ] && [ -f private_key.pem ]
 FROM scratch AS complement-config
 WORKDIR /complement
 COPY --from=key-gen /complement/* .
-COPY --from=source /usr/src/matron-server/tests/complement/results.jsonl old_results.jsonl
+COPY --from=source /usr/src/tuwunel/tests/complement/results.jsonl old_results.jsonl
 COPY <<EOF complement.toml
     [global]
     address = "0.0.0.0"
@@ -65,7 +65,7 @@ COPY <<EOF complement.toml
     error_on_unknown_config_opts = true
     federation_idle_timeout = 300
     ip_range_denylist = []
-    log = "debug,matron-server=trace,h2=warn,hyper=warn"
+    log = "debug,tuwunel=trace,h2=warn,hyper=warn"
     log_colors = false
     log_guest_registrations = false
     log_span_events = "NONE"
@@ -106,8 +106,8 @@ FROM input AS complement-testee
 EXPOSE 8008 8448
 RUN mkdir /database
 COPY --from=complement-config * /complement/
-ENV MATRON_SERVER_CONFIG="/complement/complement.toml"
-ENTRYPOINT matron-server -Oserver_name=\""$SERVER_NAME\""
+ENV TUWUNEL_CONFIG="/complement/complement.toml"
+ENTRYPOINT tuwunel -Oserver_name=\""$SERVER_NAME\""
 
 
 FROM input AS complement-testee-valgrind
@@ -116,13 +116,13 @@ ARG db_pool_max_workers=128
 EXPOSE 8008 8448
 RUN mkdir /database
 COPY --from=complement-config * /complement/
-ENV MATRON_SERVER_CONFIG="/complement/complement.toml"
+ENV TUWUNEL_CONFIG="/complement/complement.toml"
 ENTRYPOINT valgrind \
     --leak-check=no \
     --undef-value-errors=no \
     --exit-on-first-error=yes \
     --error-exitcode=1 \
-    matron-server \
+    tuwunel \
         -Oserver_name=\""$SERVER_NAME\"" \
         -Odb_pool_max_workers=${db_pool_max_workers}
 

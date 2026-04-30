@@ -32,9 +32,9 @@ cargo_feat_sets = {
     # Default features
     default = "brotli_compression,element_hacks,gzip_compression,io_uring,jemalloc,jemalloc_conf,media_thumbnail,release_max_log_level,systemd,url_preview,zstd_compression"
     # All features sans release_max_log_level
-    logging = "blurhashing,brotli_compression,bzip2_compression,console,direct_tls,element_hacks,gzip_compression,io_uring,jemalloc,jemalloc_conf,jemalloc_prof,jemalloc_stats,ldap,lz4_compression,media_thumbnail,perf_measurements,sentry_telemetry,systemd,tokio_console,matron_server_mods,url_preview,zstd_compression"
+    logging = "blurhashing,brotli_compression,bzip2_compression,console,direct_tls,element_hacks,gzip_compression,io_uring,jemalloc,jemalloc_conf,jemalloc_prof,jemalloc_stats,ldap,lz4_compression,media_thumbnail,perf_measurements,sentry_telemetry,systemd,tokio_console,tuwunel_mods,url_preview,zstd_compression"
     # All features
-    all = "blurhashing,brotli_compression,bzip2_compression,console,direct_tls,element_hacks,gzip_compression,io_uring,jemalloc,jemalloc_conf,jemalloc_prof,jemalloc_stats,ldap,lz4_compression,media_thumbnail,perf_measurements,release_max_log_level,sentry_telemetry,systemd,tokio_console,matron_server_mods,url_preview,zstd_compression"
+    all = "blurhashing,brotli_compression,bzip2_compression,console,direct_tls,element_hacks,gzip_compression,io_uring,jemalloc,jemalloc_conf,jemalloc_prof,jemalloc_stats,ldap,lz4_compression,media_thumbnail,perf_measurements,release_max_log_level,sentry_telemetry,systemd,tokio_console,tuwunel_mods,url_preview,zstd_compression"
 }
 variable "cargo_features_always" {
     default = "direct_tls"
@@ -107,7 +107,7 @@ variable "complement_skip" {
 
 # Package metadata inputs
 variable "package_name" {
-    default = "matron-server"
+    default = "tuwunel"
 }
 variable "package_authors" {
     default = "Jason Volk <jason@zemos.net>"
@@ -133,14 +133,6 @@ variable "cache_compress_level" {
     default = 7
 }
 
-# Use the cargo-chef layering strategy to separate and pre-build dependencies
-# in a lower-layer image; only workspace crates will rebuild unless
-# dependencies themselves change (default). This option can be set to false for
-# bypassing chef, building within a single layer.
-variable "use_chef" {
-    default = "true"
-}
-
 # Options for output verbosity
 variable "BUILDKIT_PROGRESS" {}
 variable "CARGO_TERM_VERBOSE" {
@@ -154,6 +146,10 @@ variable "docker_dir" {
 # Override the project checkout
 variable "git_checkout" {
     default = "HEAD"
+}
+
+variable "rustdoc_base_path" {
+	default = ""
 }
 
 #
@@ -191,7 +187,6 @@ dynamic_libs = [
 nightly_rustflags = [
     "--cfg tokio_unstable",
     "--allow=unstable-features",
-    "-Z crate-attr=feature(test)",
     "-Z enforce-type-length-limit",
     #"-Z time-passes",
     #"-Z time-llvm-passes",
@@ -242,7 +237,7 @@ group "lints" {
 
 group "tests" {
     targets = [
-        "docs",
+        "doc",
         "unit",
         "smoke",
         "integration",
@@ -480,7 +475,7 @@ target "rust-sdk-valgrind" {
     }
     args = {
         VALGRINDFLAGS = "${valgrind_flags}"
-        mrsdk_testee = "valgrind ${valgrind_flags} /usr/bin/matron-server ${valgrind_testee_args}"
+        mrsdk_testee = "valgrind ${valgrind_flags} /usr/bin/tuwunel ${valgrind_testee_args}"
         mrsdk_test_args = ""
         mrsdk_startup_delay = "30s"
         mrsdk_skip_list =<<EOF
@@ -511,7 +506,7 @@ target "rust-sdk-integ" {
     args = {
         mrsdk_target_share = "/usr/src/matrix-rust-sdk/target/${sys_name}/${sys_version}/${rust_target}/${rust_toolchain}/_shared_cache"
 
-        mrsdk_testee = "/usr/bin/matron-server"
+        mrsdk_testee = "/usr/bin/tuwunel"
         mrsdk_test_args = "--no-fail-fast"
 
         mrsdk_skip_list =<<EOF
@@ -553,7 +548,7 @@ target "integ" {
         input = elem("target:build-tests", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
     }
     args = {
-        MATRON_SERVER_DATABASE_PATH = "/tmp/integration.test.db"
+        TUWUNEL_DATABASE_PATH = "/tmp/integration.test.db"
         cargo_cmd = (cargo_profile == "bench"? "bench": "test")
         cargo_args = (cargo_profile == "bench"?
             "--no-fail-fast --bench=*": "--no-fail-fast --test=*"
@@ -650,6 +645,7 @@ target "tests-smoke" {
     tags = [
         elem_tag("tests-smoke", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
     ]
+    target = "smoke-startup"
     output = ["type=cacheonly,compression=zstd,mode=min,compression-level=${cache_compress_level}"]
     dockerfile = "${docker_dir}/Dockerfile.smoketest"
     matrix = cargo_rust_feat_sys
@@ -706,10 +702,10 @@ target "unit" {
     }
 }
 
-target "docs" {
-    name = elem("docs", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+target "doc" {
+    name = elem("doc", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
     tags = [
-        elem_tag("docs", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
+        elem_tag("doc", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
     ]
     target = "cargo"
     matrix = cargo_rust_feat_sys
@@ -722,6 +718,7 @@ target "docs" {
     args = {
         cargo_cmd = "test"
         cargo_args = "--doc --no-fail-fast"
+        RUSTDOCFLAGS = "-D warnings"
     }
 }
 
@@ -742,13 +739,13 @@ install_labels = {
     "org.opencontainers.image.authors" = "${package_authors}"
     "org.opencontainers.image.created" = "${package_last_modified}"
     "org.opencontainers.image.description" = "Matrix Chat Server in Rust"
-    "org.opencontainers.image.documentation" = "https://github.com/matronhq/matron-server/tree/main/docs/"
+    "org.opencontainers.image.documentation" = "https://matrix-construct.github.io/tuwunel/"
     "org.opencontainers.image.licenses" = "Apache-2.0"
     "org.opencontainers.image.revision" = "${package_revision}"
-    "org.opencontainers.image.source" = "https://github.com/matronhq/matron-server"
+    "org.opencontainers.image.source" = "https://github.com/matrix-construct/tuwunel"
     "org.opencontainers.image.title" = "${package_name}"
-    "org.opencontainers.image.url" = "https://github.com/matronhq/matron-server"
-    "org.opencontainers.image.vendor" = "yearbook"
+    "org.opencontainers.image.url" = "https://github.com/matrix-construct/tuwunel"
+    "org.opencontainers.image.vendor" = "matrix-construct"
     "org.opencontainers.image.version" = "${package_version}"
 }
 
@@ -756,13 +753,13 @@ install_annotations = [
     "org.opencontainers.image.authors=${package_authors}",
     "org.opencontainers.image.created=${package_last_modified}",
     "org.opencontainers.image.description=Matrix Chat Server in Rust",
-    "org.opencontainers.image.documentation=https://github.com/matronhq/matron-server/tree/main/docs/",
+    "org.opencontainers.image.documentation=https://matrix-construct.github.io/tuwunel/",
     "org.opencontainers.image.licenses=Apache-2.0",
     "org.opencontainers.image.revision=${package_revision}",
-    "org.opencontainers.image.source=https://github.com/matronhq/matron-server",
+    "org.opencontainers.image.source=https://github.com/matrix-construct/tuwunel",
     "org.opencontainers.image.title=${package_name}",
-    "org.opencontainers.image.url=https://github.com/matronhq/matron-server",
-    "org.opencontainers.image.vendor=yearbook",
+    "org.opencontainers.image.url=https://github.com/matrix-construct/tuwunel",
+    "org.opencontainers.image.vendor=matrix-construct",
     "org.opencontainers.image.version=${package_version}",
 ]
 
@@ -771,7 +768,7 @@ target "oci" {
     tags = [
         elem_tag("oci", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
     ]
-    output = ["type=oci,dest=matron-server-oci.tar.zst,compression=zstd,compression-level=${zstd_image_compress_level},force-compression=true,mode=min"]
+    output = ["type=oci,dest=tuwunel-oci.tar.zst,compression=zstd,compression-level=${zstd_image_compress_level},force-compression=true,mode=min"]
     matrix = cargo_rust_feat_sys
     inherits = [
         elem("docker", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
@@ -803,7 +800,7 @@ target "docker" {
         FROM scratch AS install
         COPY --from=input . .
         EXPOSE 8008 8448
-        ENTRYPOINT ["matron-server"]
+        ENTRYPOINT ["tuwunel"]
 EOF
 }
 
@@ -822,7 +819,7 @@ target "static" {
     }
     dockerfile-inline =<<EOF
         FROM scratch AS install
-        COPY --from=input /usr/bin/matron-server /usr/bin/matron-server
+        COPY --from=input /usr/bin/tuwunel /usr/bin/tuwunel
 EOF
 }
 
@@ -951,7 +948,7 @@ target "build-rpm" {
         input = elem("target:build-bins", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     }
     args = {
-        pkg_dir = "/opt/matron-server/rpm"
+        pkg_dir = "/opt/tuwunel/rpm"
     }
 }
 
@@ -1003,7 +1000,7 @@ target "build-deb" {
         input = elem("target:build-bins", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     }
     args = {
-        pkg_dir = "/opt/matron-server/deb"
+        pkg_dir = "/opt/tuwunel/deb"
     }
 }
 
@@ -1061,30 +1058,27 @@ target "book" {
     }
     dockerfile-inline =<<EOF
         FROM input AS book
-        RUN ["mdbook", "build", "-d", "/book", "/usr/src/matron-server"]
+        RUN ["mdbook", "build", "-d", "/book", "/usr/src/tuwunel"]
 EOF
 }
 
-target "build-docs" {
-    name = elem("build-docs", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+target "docs" {
+    name = elem("docs", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
     tags = [
-        elem_tag("build-docs", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
+        elem_tag("docs", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest"),
     ]
+    output = ["type=docker,compression=zstd,mode=min,compression-level=${zstd_image_compress_level}"]
     matrix = cargo_rust_feat_sys
     inherits = [
         elem("deps-build", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
         elem("build", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     ]
-    contexts = {
-        deps = (use_chef == "true"?
-            elem("target:deps-build", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]):
-            elem("target:ingredients", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
-        )
-    }
     args = {
         cargo_cmd = "doc"
         cargo_args = "--no-deps --document-private-items"
-        RUSTDOCFLAGS = "-D warnings"
+        RUSTDOCFLAGS = (substr(rust_toolchain, 0, 7) == "nightly"?
+            "-Z unstable-options --static-root-path=${rustdoc_base_path}/static.files/": ""
+        )
     }
 }
 
@@ -1096,13 +1090,11 @@ target "build-bins" {
     matrix = cargo_rust_feat_sys
     inherits = [
         elem("deps-build-bins", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
-        elem("build", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
+        elem("cargo", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     ]
     contexts = {
-        deps = (use_chef == "true"?
-            elem("target:deps-build-bins", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]):
-            elem("target:build", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
-        )
+        input = elem("target:deps-build-bins", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+        source = elem("target:source", [sys_name, sys_version, sys_target])
     }
     args = {
         cargo_cmd = "build"
@@ -1118,13 +1110,11 @@ target "build-tests" {
     matrix = cargo_rust_feat_sys
     inherits = [
         elem("deps-build-tests", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
-        elem("build", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
+        elem("cargo", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     ]
     contexts = {
-        deps = (use_chef == "true"?
-            elem("target:deps-build-tests", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]):
-            elem("target:build", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
-        )
+        input = elem("target:deps-build-tests", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+        source = elem("target:source", [sys_name, sys_version, sys_target])
     }
     args = {
         cargo_cmd = (cargo_profile == "bench"? "bench": "test")
@@ -1143,10 +1133,8 @@ target "build" {
         elem("cargo", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     ]
     contexts = {
-        deps = (use_chef == "true"?
-            elem("target:deps-build", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]):
-            elem("target:ingredients", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
-        )
+        input = elem("target:deps-build", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+        source = elem("target:source", [sys_name, sys_version, sys_target])
     }
     args = {
         cargo_cmd = "build"
@@ -1165,10 +1153,8 @@ target "clippy" {
         elem("cargo", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     ]
     contexts = {
-        deps = (use_chef == "true"?
-            elem("target:deps-clippy", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]):
-            elem("target:ingredients", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
-        )
+        input = elem("target:deps-clippy", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+        source = elem("target:source", [sys_name, sys_version, sys_target])
     }
     args = {
         cargo_cmd = "clippy"
@@ -1187,10 +1173,8 @@ target "check" {
         elem("cargo", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]),
     ]
     contexts = {
-        deps = (use_chef == "true"?
-            elem("target:deps-check", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target]):
-            elem("target:ingredients", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
-        )
+        input = elem("target:deps-check", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+        source = elem("target:source", [sys_name, sys_version, sys_target])
     }
     args = {
         cargo_cmd = "check"
@@ -1271,17 +1255,18 @@ target "fmt" {
 
 target "cargo" {
     name = elem("cargo", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+    target = "cargo"
     output = ["type=cacheonly,compression=zstd,mode=min,compression-level=${cache_compress_level}"]
     cache_to = ["type=local,compression=zstd,mode=max,compression-level=${cache_compress_level}"]
     matrix = cargo_rust_feat_sys
     inherits = [
         elem("deps-base", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
     ]
-	contexts = {
-        deps = elem("target:deps-base", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
-	}
+    contexts = {
+        input = elem("target:deps-base", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+        source = elem("target:source", [sys_name, sys_version, sys_target])
+    }
     args = {
-        recipe_args = ""
         cargo_args = ""
         color_args = "--color=always"
     }
@@ -1372,7 +1357,7 @@ target "deps-check" {
 }
 
 variable "cargo_tgt_dir_base" {
-    default = "/usr/src/matron-server/target"
+    default = "/usr/src/tuwunel/target"
 }
 
 target "deps-base" {
@@ -1380,7 +1365,7 @@ target "deps-base" {
     tags = [
         elem_tag("deps-base", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target], "latest")
     ]
-    target = "cargo"
+    target = "cook"
     output = ["type=cacheonly,compression=zstd,mode=min,compression-level=${cache_compress_level}"]
     cache_to = ["type=local,compression=zstd,mode=max,compression-level=${cache_compress_level}"]
     dockerfile = "${docker_dir}/Dockerfile.cargo"
@@ -1392,23 +1377,16 @@ target "deps-base" {
     ]
     contexts = {
         input = elem("target:kitchen", [feat_set, sys_name, sys_version, sys_target])
-        deps = elem("target:preparing", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
+        recipe = elem("target:recipe", [rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
         rocksdb = elem("target:rocksdb", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
     }
     args = {
         cargo_profile = cargo_profile
         cargo_cmd = "chef cook --all-targets --no-build"
-        recipe_args = "--recipe-path=recipe.json"
         color_args = ""
 
         # Base path
         CARGO_TARGET_DIR = "${cargo_tgt_dir_base}"
-        # cache key for unique artifact area
-        cargo_target_artifact = "${cargo_tgt_dir_base}/${sys_name}/${sys_version}/${rust_target}/${rust_toolchain}/${cargo_profile}/${feat_set}/${git_ref_sha}"
-        # cache key for hashed subdirs
-        cargo_share = "${cargo_tgt_dir_base}/${sys_name}/${sys_version}/${rust_toolchain}/${cargo_profile}/_shared_cache"
-        # cache key for hashed subdirs
-        cargo_target_share = "${cargo_tgt_dir_base}/${sys_name}/${sys_version}/${rust_target}/${rust_toolchain}/${cargo_profile}/_shared_cache"
         # cased name of profile subdir within target complex
         cargo_target_profile = (
             (cargo_profile == "dev" || cargo_profile == "test")? "debug":
@@ -1548,9 +1526,6 @@ target "rocksdb" {
     inherits = [
         elem("rocksdb-build", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
     ]
-    contexts = {
-        input = elem("target:rocksdb-build", [cargo_profile, rust_toolchain, rust_target, feat_set, sys_name, sys_version, sys_target])
-    }
 }
 
 target "rocksdb-build" {

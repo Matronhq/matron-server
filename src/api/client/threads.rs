@@ -1,7 +1,7 @@
 use axum::extract::State;
 use futures::{StreamExt, TryStreamExt};
 use ruma::{api::client::threads::get_threads, uint};
-use matron_server_core::{
+use tuwunel_core::{
 	Result, at,
 	matrix::{
 		Event,

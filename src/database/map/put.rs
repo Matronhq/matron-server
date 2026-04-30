@@ -7,7 +7,7 @@
 use std::{convert::AsRef, fmt::Debug, io::Write};
 
 use serde::Serialize;
-use matron_server_core::{arrayvec::ArrayVec, implement};
+use tuwunel_core::{arrayvec::ArrayVec, implement};
 
 use crate::{
 	keyval::{KeyBuf, ValBuf},

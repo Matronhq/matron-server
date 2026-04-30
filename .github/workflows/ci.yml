@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  metadata:
+    name: Metadata and safety checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.94.0
+          components: rustfmt
+
+      - name: Check Cargo metadata
+        run: cargo metadata --no-deps --locked --format-version 1
+
+      - name: Check whitespace
+        run: git diff --check
+
+      - name: Validate workflow YAML
+        run: ruby -e 'require "yaml"; Dir[".github/workflows/*.{yml,yaml}"].each { |path| YAML.load_file(path) }'
+
+      - name: Scan for private/internal strings
+        run: |
+          set -euo pipefail
+          ! git grep -I -n -E 'yearbook|yearbook-infra|yearbookmachine|danbarker' -- . ':!.github/workflows/ci.yml'
+
+      - name: Scan public Matron metadata
+        run: ruby -e 'bad = []; %w[README.md Cargo.toml].each { |path| File.readlines(path).each_with_index { |line, index| bad << "#{path}:#{index + 1}:#{line}" if line.match?(/\buwu\b/i) || line.match?(/[💕❤]/) || line.match?(/\bheart\b/i) } }; abort(bad.join) unless bad.empty?'

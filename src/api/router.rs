@@ -1,5 +1,6 @@
 mod args;
 mod auth;
+mod client_ip;
 mod handler;
 mod request;
 mod response;
@@ -12,14 +13,16 @@ use axum::{
 	response::{IntoResponse, Redirect},
 	routing::{any, get, post},
 };
+pub use client_ip::ConfiguredIpSource;
 use http::{Uri, uri};
-use matron_server_core::{Server, err};
+use tuwunel_core::{Server, err};
 
 use self::handler::RouterExt;
 pub(super) use self::{
-	args::Args as Ruma, auth::auth_uiaa, response::RumaResponse, state::State,
+	args::Args as Ruma, auth::auth_uiaa, client_ip::ClientIp, response::RumaResponse,
+	state::State,
 };
-use crate::{client, server};
+use crate::{client, oidc, server};
 
 pub fn build(router: Router<State>, server: &Server) -> Router<State> {
 	let config = &server.config;
@@ -41,6 +44,7 @@ pub fn build(router: Router<State>, server: &Server) -> Router<State> {
 		.ruma_route(&client::sso_login_route)
 		.ruma_route(&client::sso_login_with_provider_route)
 		.ruma_route(&client::sso_callback_route)
+		.ruma_route(&client::sso_fallback_route)
 		.ruma_route(&client::whoami_route)
 		.ruma_route(&client::logout_route)
 		.ruma_route(&client::logout_all_route)
@@ -153,6 +157,7 @@ pub fn build(router: Router<State>, server: &Server) -> Router<State> {
 		.ruma_route(&client::sync_events_route)
 		.ruma_route(&client::sync_events_v5_route)
 		.ruma_route(&client::get_context_route)
+		.ruma_route(&client::get_event_by_timestamp_route)
 		.ruma_route(&client::get_message_events_route)
 		.ruma_route(&client::search_events_route)
 		.ruma_route(&client::turn_server_route)
@@ -195,10 +200,40 @@ pub fn build(router: Router<State>, server: &Server) -> Router<State> {
 			"/_matrix/client/unstable/im.nheko.summary/rooms/{room_id_or_alias}/summary",
 			get(client::get_room_summary_legacy)
 		)
-		.ruma_route(&client::well_known_support)
-		.ruma_route(&client::well_known_client)
+		.ruma_route(&client::room_initial_sync_route)
 		.route("/_tuwunel/server_version", get(client::tuwunel_server_version))
-		.ruma_route(&client::room_initial_sync_route);
+		// OIDC server endpoints (next-gen auth, MSC2965/2964/2966/2967)
+		.route("/_tuwunel/oidc/registration", post(oidc::registration_route))
+		.route("/_tuwunel/oidc/authorize", get(oidc::authorize_route))
+		.route("/_tuwunel/oidc/_complete", get(oidc::complete_route))
+		.route("/_tuwunel/oidc/token", post(oidc::token_route))
+		.route("/_tuwunel/oidc/revoke", post(oidc::revoke_route))
+		.route("/_tuwunel/oidc/jwks", get(oidc::jwks_route))
+		.route("/_tuwunel/oidc/userinfo",
+			get(oidc::userinfo_route)
+			.post(oidc::userinfo_route)
+		)
+		.route("/_tuwunel/oidc/account.js", get(oidc::account_js_route))
+		.route("/_tuwunel/oidc/account.css", get(oidc::account_css_route))
+		.route(
+			"/_tuwunel/oidc/account_callback",
+			get(oidc::get_account_callback_route)
+			.post(oidc::post_account_callback_route),
+		)
+		.route("/_tuwunel/oidc/account", get(oidc::get_account_route))
+		.route("/_matrix/client/v1/auth_issuer", get(oidc::auth_issuer_route))
+		.route("/_matrix/client/v1/auth_metadata", get(oidc::openid_configuration_route))
+		.route(
+			"/_matrix/client/unstable/org.matrix.msc2965/auth_issuer",
+			get(oidc::auth_issuer_route)
+		)
+		.route(
+			"/_matrix/client/unstable/org.matrix.msc2965/auth_metadata",
+			get(oidc::openid_configuration_route)
+		)
+		.route("/.well-known/openid-configuration", get(oidc::openid_configuration_route))
+		.ruma_route(&client::well_known_support)
+		.ruma_route(&client::well_known_client);
 
 	// SS endpoints not related to federation
 	router = router
@@ -217,6 +252,7 @@ pub fn build(router: Router<State>, server: &Server) -> Router<State> {
 			.ruma_route(&server::get_public_rooms_filtered_route)
 			.ruma_route(&server::send_transaction_message_route)
 			.ruma_route(&server::get_event_route)
+			.ruma_route(&server::get_event_by_timestamp_route)
 			.ruma_route(&server::get_backfill_route)
 			.ruma_route(&server::get_missing_events_route)
 			.ruma_route(&server::get_event_authorization_route)
@@ -251,36 +287,13 @@ pub fn build(router: Router<State>, server: &Server) -> Router<State> {
 			.ruma_route(&client::get_media_preview_legacy_route)
 			.ruma_route(&client::get_content_legacy_route)
 			.ruma_route(&client::get_content_as_filename_legacy_route)
-			.ruma_route(&client::get_content_thumbnail_legacy_route)
-			.route("/_matrix/media/v1/config", get(client::get_media_config_legacy_legacy_route))
-			.route("/_matrix/media/v1/upload", post(client::create_content_legacy_route))
-			.route(
-				"/_matrix/media/v1/preview_url",
-				get(client::get_media_preview_legacy_legacy_route),
-			)
-			.route(
-				"/_matrix/media/v1/download/{server_name}/{media_id}",
-				get(client::get_content_legacy_legacy_route),
-			)
-			.route(
-				"/_matrix/media/v1/download/{server_name}/{media_id}/{file_name}",
-				get(client::get_content_as_filename_legacy_legacy_route),
-			)
-			.route(
-				"/_matrix/media/v1/thumbnail/{server_name}/{media_id}",
-				get(client::get_content_thumbnail_legacy_legacy_route),
-			);
+			.ruma_route(&client::get_content_thumbnail_legacy_route);
 	} else {
 		router = router
-			.route("/_matrix/media/v1/{*path}", any(legacy_media_disabled))
 			.route("/_matrix/media/v3/config", any(legacy_media_disabled))
 			.route("/_matrix/media/v3/download/{*path}", any(legacy_media_disabled))
 			.route("/_matrix/media/v3/thumbnail/{*path}", any(legacy_media_disabled))
-			.route("/_matrix/media/v3/preview_url", any(redirect_legacy_preview))
-			.route("/_matrix/media/r0/config", any(legacy_media_disabled))
-			.route("/_matrix/media/r0/download/{*path}", any(legacy_media_disabled))
-			.route("/_matrix/media/r0/thumbnail/{*path}", any(legacy_media_disabled))
-			.route("/_matrix/media/r0/preview_url", any(redirect_legacy_preview));
+			.route("/_matrix/media/v3/preview_url", any(redirect_legacy_preview));
 	}
 
 	router

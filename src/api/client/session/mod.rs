@@ -8,7 +8,6 @@ mod sso;
 mod token;
 
 use axum::extract::State;
-use axum_client_ip::InsecureClientIp;
 use ruma::api::client::session::{
 	get_login_types::{
 		self,
@@ -22,18 +21,20 @@ use ruma::api::client::session::{
 		v3::{DiscoveryInfo, HomeserverInfo, LoginInfo},
 	},
 };
-use matron_server_core::{Err, Result, info, utils::stream::ReadyExt};
-use matron_server_service::users::device::generate_refresh_token;
+use tuwunel_core::{Err, Result, info, utils::stream::ReadyExt};
+use tuwunel_service::users::device::generate_refresh_token;
 
 use self::{ldap::ldap_login, password::password_login};
 pub(crate) use self::{
 	logout::{logout_all_route, logout_route},
 	refresh::refresh_token_route,
-	sso::{sso_callback_route, sso_login_route, sso_login_with_provider_route},
+	sso::{
+		sso_callback_route, sso_fallback_route, sso_login_route, sso_login_with_provider_route,
+	},
 	token::login_token_route,
 };
 use super::TOKEN_LENGTH;
-use crate::Ruma;
+use crate::{ClientIp, Ruma};
 
 /// # `GET /_matrix/client/v3/login`
 ///
@@ -42,7 +43,7 @@ use crate::Ruma;
 #[tracing::instrument(skip_all, fields(%client), name = "login")]
 pub(crate) async fn get_login_types_route(
 	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
+	ClientIp(client): ClientIp,
 	_body: Ruma<get_login_types::v3::Request>,
 ) -> Result<get_login_types::v3::Response> {
 	let get_login_token = services.config.login_via_existing_session;
@@ -68,14 +69,17 @@ pub(crate) async fn get_login_types_route(
 		LoginType::Jwt(JwtLoginType::default()),
 		LoginType::Password(PasswordLoginType::default()),
 		LoginType::Token(TokenLoginType { get_login_token }),
-		LoginType::Sso(SsoLoginType { identity_providers }),
+		LoginType::Sso(SsoLoginType {
+			identity_providers,
+			delegated_oidc_compatibility: services.config.oidc_aware_preferred,
+		}),
 	];
 
 	Ok(get_login_types::v3::Response {
 		flows: flows
 			.into_iter()
 			.filter(|login_type| match login_type {
-				| LoginType::Sso(SsoLoginType { identity_providers })
+				| LoginType::Sso(SsoLoginType { identity_providers, .. })
 					if list_idps && identity_providers.is_empty() =>
 					false,
 				| LoginType::Password(_) => services.config.login_with_password,
@@ -103,7 +107,7 @@ pub(crate) async fn get_login_types_route(
 #[tracing::instrument(name = "login", skip_all, fields(%client, ?body.login_info))]
 pub(crate) async fn login_route(
 	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
+	ClientIp(client): ClientIp,
 	body: Ruma<login::v3::Request>,
 ) -> Result<login::v3::Response> {
 	// Validate login method
@@ -159,7 +163,7 @@ pub(crate) async fn login_route(
 				(Some(&access_token), expires_in),
 				refresh_token.as_deref(),
 				body.initial_device_display_name.as_deref(),
-				Some(client.to_string()),
+				Some(client),
 			)
 			.await?
 	};

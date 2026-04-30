@@ -12,8 +12,8 @@ use std::{
 use tokio::runtime::Builder;
 pub use tokio::runtime::{Handle, Runtime as Tokio};
 #[cfg(all(not(target_env = "msvc"), feature = "jemalloc"))]
-use matron_server_core::result::LogDebugErr;
-use matron_server_core::{
+use tuwunel_core::result::LogDebugErr;
+use tuwunel_core::{
 	Result, debug, implement, is_true,
 	metrics::Metrics,
 	utils::sys::{
@@ -37,10 +37,10 @@ struct State {
 	thread_spawns: AtomicUsize,
 }
 
-const WORKER_THREAD_NAME: &str = "matron:worker";
+const WORKER_THREAD_NAME: &str = "tuwunel:worker";
 const WORKER_THREAD_MIN: usize = 2;
 const BLOCKING_THREAD_KEEPALIVE: u64 = 36;
-const BLOCKING_THREAD_NAME: &str = "matron:spawned";
+const BLOCKING_THREAD_NAME: &str = "tuwunel:spawned";
 const BLOCKING_THREAD_MAX: usize = 1024;
 const RUNTIME_SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(10);
 const DISABLE_MUZZY_THRESHOLD: usize = 8;
@@ -110,11 +110,11 @@ impl Drop for Runtime {
 		self.wait_shutdown();
 
 		if let Some(runtime_metrics) = self.metrics.runtime_interval() {
-			matron_server_core::event!(LEVEL, ?runtime_metrics, "Final runtime metrics.");
+			tuwunel_core::event!(LEVEL, ?runtime_metrics, "Final runtime metrics.");
 		}
 
-		if let Ok(resource_usage) = matron_server_core::utils::sys::usage() {
-			matron_server_core::event!(LEVEL, ?resource_usage, "Final resource usage.");
+		if let Ok(resource_usage) = tuwunel_core::utils::sys::usage() {
+			tuwunel_core::event!(LEVEL, ?resource_usage, "Final resource usage.");
 		}
 	}
 }
@@ -132,7 +132,7 @@ fn wait_shutdown(&mut self) {
 
 	// Join any jemalloc threads so they don't appear in use at exit.
 	#[cfg(all(not(target_env = "msvc"), feature = "jemalloc"))]
-	matron_server_core::alloc::je::background_thread_enable(false)
+	tuwunel_core::alloc::je::background_thread_enable(false)
 		.log_debug_err()
 		.ok();
 }
@@ -271,11 +271,11 @@ fn set_worker_affinity(&self) {
 #[implement(State)]
 fn set_worker_mallctl(&self, _id: usize) {
 	let muzzy_auto_disable =
-		matron_server_core::utils::available_parallelism() >= DISABLE_MUZZY_THRESHOLD;
+		tuwunel_core::utils::available_parallelism() >= DISABLE_MUZZY_THRESHOLD;
 
 	if matches!(self.gc_muzzy, Some(false) | None if muzzy_auto_disable) {
 		#[cfg(all(not(target_env = "msvc"), feature = "jemalloc"))]
-		matron_server_core::alloc::je::this_thread::set_muzzy_decay(-1)
+		tuwunel_core::alloc::je::this_thread::set_muzzy_decay(-1)
 			.log_debug_err()
 			.ok();
 	}
@@ -294,9 +294,9 @@ fn set_worker_mallctl(&self, _id: usize) {
 #[expect(clippy::unused_self)]
 fn thread_stop(&self) {
 	if cfg!(any(tokio_unstable, not(feature = "release_max_log_level")))
-		&& let Ok(resource_usage) = matron_server_core::utils::sys::thread_usage()
+		&& let Ok(resource_usage) = tuwunel_core::utils::sys::thread_usage()
 	{
-		matron_server_core::debug!(?resource_usage, "Thread resource usage.");
+		tuwunel_core::debug!(?resource_usage, "Thread resource usage.");
 	}
 }
 
@@ -332,7 +332,7 @@ fn thread_park(&self) {
 
 fn gc_on_park() {
 	#[cfg(all(not(target_env = "msvc"), feature = "jemalloc"))]
-	matron_server_core::alloc::je::this_thread::decay()
+	tuwunel_core::alloc::je::this_thread::decay()
 		.log_debug_err()
 		.ok();
 }

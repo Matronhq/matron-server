@@ -5,8 +5,8 @@ use ruma::{
 	CanonicalJsonName, CanonicalJsonObject, CanonicalJsonValue,
 	api::federation::authentication::XMatrix,
 };
-use matron_server_core::{Err, Result, debug_error, err, warn};
-use matron_server_service::{
+use tuwunel_core::{Err, Result, debug_error, err, warn};
+use tuwunel_service::{
 	Services,
 	server_keys::{PubKeyMap, PubKeys},
 };
@@ -77,7 +77,7 @@ pub(super) async fn auth_server(
 		if request.parts.uri.to_string().contains('@') {
 			warn!(
 				"Request uri contained '@' character. Make sure your reverse proxy gives \
-				 matron-server the raw uri (apache: use nocanon)"
+				 tuwunel the raw uri (apache: use nocanon)"
 			);
 		}
 

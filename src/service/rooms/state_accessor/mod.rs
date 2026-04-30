@@ -27,7 +27,7 @@ use ruma::{
 	},
 	room::RoomType,
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Result, err, is_true,
 	matrix::{Pdu, room_version},
 	utils::BoolExt,

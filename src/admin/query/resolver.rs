@@ -1,7 +1,7 @@
 use clap::Subcommand;
 use futures::StreamExt;
 use ruma::OwnedServerName;
-use matron_server_core::{Result, utils::time};
+use tuwunel_core::{Result, utils::time};
 
 use crate::{admin_command, admin_command_dispatch};
 
@@ -22,7 +22,7 @@ pub(crate) enum ResolverCommand {
 
 #[admin_command]
 async fn destinations_cache(&self, server_name: Option<OwnedServerName>) -> Result {
-	use matron_server_service::resolver::cache::CachedDest;
+	use tuwunel_service::resolver::cache::CachedDest;
 
 	writeln!(self, "| Server Name | Destination | Hostname | Expires |").await?;
 	writeln!(self, "| ----------- | ----------- | -------- | ------- |").await?;
@@ -51,7 +51,7 @@ async fn destinations_cache(&self, server_name: Option<OwnedServerName>) -> Resu
 
 #[admin_command]
 async fn overrides_cache(&self, server_name: Option<String>) -> Result {
-	use matron_server_service::resolver::cache::CachedOverride;
+	use tuwunel_service::resolver::cache::CachedOverride;
 
 	writeln!(self, "| Server Name | IP  | Port | Expires | Overriding |").await?;
 	writeln!(self, "| ----------- | --- | ----:| ------- | ---------- |").await?;

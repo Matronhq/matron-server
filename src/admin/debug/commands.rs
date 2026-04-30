@@ -2,11 +2,12 @@ use std::{
 	collections::HashMap,
 	fmt::Write,
 	iter::once,
+	path::Path,
 	str::FromStr,
 	time::{Instant, SystemTime},
 };
 
-use futures::{FutureExt, StreamExt, TryStreamExt};
+use futures::{FutureExt, Stream, StreamExt, TryFutureExt, TryStreamExt, future::try_join3};
 use ruma::{
 	CanonicalJsonObject, CanonicalJsonValue, EventId, OwnedEventId, OwnedRoomId,
 	OwnedRoomOrAliasId, OwnedServerName, RoomId, RoomVersionId,
@@ -15,9 +16,10 @@ use ruma::{
 	serde::Raw,
 };
 use serde::Serialize;
+use tokio::io::AsyncWriteExt;
 use tracing_subscriber::EnvFilter;
-use matron_server_core::{
-	Err, Result, debug_error, err, info, jwt,
+use tuwunel_core::{
+	Err, Error, Result, debug_error, err, info, jwt,
 	matrix::{
 		Event,
 		pdu::{PduEvent, PduId, RawPduId},
@@ -26,13 +28,13 @@ use matron_server_core::{
 	trace, utils,
 	utils::{
 		math::Expected,
-		stream::{IterStream, ReadyExt},
+		stream::{IterStream, ReadyExt, TryReadyExt},
 		string::EMPTY,
 		time::now_secs,
 	},
 	warn,
 };
-use matron_server_service::rooms::{short::ShortRoomId, state_compressor::HashSetCompressStateEvent};
+use tuwunel_service::rooms::{short::ShortRoomId, state_compressor::HashSetCompressStateEvent};
 
 use crate::admin_command;
 
@@ -277,28 +279,56 @@ pub(super) async fn get_remote_pdu(
 }
 
 #[admin_command]
-pub(super) async fn get_room_state(&self, room: OwnedRoomOrAliasId) -> Result {
+pub(super) async fn get_room_state(
+	&self,
+	room: OwnedRoomOrAliasId,
+	kind: Option<String>,
+	state_key: Option<String>,
+) -> Result {
 	let room_id = self.services.alias.maybe_resolve(&room).await?;
-	let room_state: Vec<Raw<AnyStateEvent>> = self
-		.services
+
+	if state_key.is_none()
+		&& let Some(kind) = kind.clone().map(Into::into)
+	{
+		return self
+			.services
+			.state_accessor
+			.room_state_type_pdus(&room_id, &kind)
+			.map_ok(Event::into_format)
+			.ready_and_then(|event: Raw<AnyStateEvent>| {
+				serde_json::to_value(&event).map_err(Error::from)
+			})
+			.ready_and_then(|event| serde_json::to_string_pretty(&event).map_err(Error::from))
+			.try_for_each(|json| self.write_string(format!("```json\n{json}\n```\n")))
+			.await;
+	}
+
+	if let Some(state_key) = state_key
+		&& let Some(kind) = kind.map(Into::into)
+	{
+		let event: Raw<AnyStateEvent> = self
+			.services
+			.state_accessor
+			.room_state_get(&room_id, &kind, &state_key)
+			.await?
+			.into_format();
+
+		let value = serde_json::to_value(&event)?;
+		let json = serde_json::to_string_pretty(&value)?;
+		return self
+			.write_string(format!("```json\n{json}\n```\n"))
+			.await;
+	}
+
+	self.services
 		.state_accessor
 		.room_state_full_pdus(&room_id)
 		.map_ok(Event::into_format)
-		.try_collect()
-		.await?;
-
-	if room_state.is_empty() {
-		return Err!("Unable to find room state in our database (vector is empty)",);
-	}
-
-	let json = serde_json::to_string_pretty(&room_state).map_err(|e| {
-		err!(Database(
-			"Failed to convert room state events to pretty JSON, possible invalid room state \
-			 events in our database {e}",
-		))
-	})?;
-
-	self.write_str(&format!("```json\n{json}\n```"))
+		.ready_and_then(|event: Raw<AnyStateEvent>| {
+			serde_json::to_value(&event).map_err(Error::from)
+		})
+		.ready_and_then(|event| serde_json::to_string_pretty(&event).map_err(Error::from))
+		.try_for_each(|json| self.write_string(format!("```json\n{json}\n```\n")))
 		.await
 }
 
@@ -733,7 +763,7 @@ pub(super) async fn memory_stats(&self, opts: Option<String>) -> Result {
 		})
 		.collect();
 
-	let stats = matron_server_core::alloc::memory_stats(&opts).unwrap_or_default();
+	let stats = tuwunel_core::alloc::memory_stats(&opts).unwrap_or_default();
 
 	self.write_str("```\n").await?;
 	self.write_str(&stats).await?;
@@ -921,7 +951,7 @@ pub(super) async fn database_files(&self, map: Option<String>, level: Option<i32
 
 #[admin_command]
 pub(super) async fn trim_memory(&self) -> Result {
-	matron_server_core::alloc::trim(None)?;
+	tuwunel_core::alloc::trim(None)?;
 
 	writeln!(self, "done").await
 }
@@ -1008,4 +1038,42 @@ pub(super) async fn get_retained_pdu(&self, event_id: OwnedEventId) -> Result {
 		.await?;
 
 	Ok(())
+}
+
+#[admin_command]
+pub(super) async fn dump_pdus(&self, dir: String) -> Result {
+	use tokio::fs;
+
+	let dir_path = Path::new(&dir);
+	fs::create_dir_all(dir_path).await?;
+
+	let normal = dumper(dir_path, "normal", self.services.timeline.pdus_raw());
+	let outlier = dumper(dir_path, "outliers", self.services.timeline.outlier_pdus_raw());
+	let retained = dumper(dir_path, "retaineds", self.services.retention.retained_pdus_raw());
+	try_join3(normal, outlier, retained).await?;
+
+	Ok(())
+}
+
+async fn dumper<'a, S>(dir: &Path, name: &str, stream: S) -> Result
+where
+	S: Stream<Item = Result<&'a [u8]>> + Send,
+{
+	use tokio::fs::OpenOptions;
+
+	let mut fopts = OpenOptions::new();
+	fopts.write(true);
+	fopts.create(true);
+	fopts.truncate(true);
+
+	let path = dir.join(name);
+	let file = fopts.open(path).await?;
+	stream
+		.try_fold(file, async |mut file, data| {
+			file.write_all(data).await?;
+
+			Ok(file)
+		})
+		.and_then(async |mut file| Ok(file.shutdown().await?))
+		.await
 }

@@ -1,6 +1,6 @@
 use axum::extract::State;
 use ruma::api::{client::error::ErrorKind, federation::discovery::discover_homeserver};
-use matron_server_core::{Error, Result};
+use tuwunel_core::{Error, Result};
 
 use crate::Ruma;
 

@@ -6,7 +6,6 @@ use std::{
 };
 
 use axum::extract::State;
-use axum_client_ip::InsecureClientIp;
 use futures::{FutureExt, Stream, StreamExt, TryFutureExt, TryStreamExt};
 use ruma::{
 	CanonicalJsonObject, OwnedEventId, OwnedRoomId, OwnedUserId, RoomId, ServerName,
@@ -26,7 +25,7 @@ use ruma::{
 	serde::Raw,
 	to_device::DeviceIdOrAllDevices,
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Error, Result, debug,
 	debug::INFO_SPAN_LEVEL,
 	debug_warn, defer, err, error,
@@ -42,12 +41,12 @@ use matron_server_core::{
 	},
 	warn,
 };
-use matron_server_service::{
+use tuwunel_service::{
 	Services,
 	sending::{EDU_LIMIT, PDU_LIMIT},
 };
 
-use crate::Ruma;
+use crate::{ClientIp, Ruma};
 
 type ResolvedMap = BTreeMap<OwnedEventId, Result>;
 type RoomsPdus = SmallVec<[RoomPdus; 1]>;
@@ -70,7 +69,7 @@ type Pdu = (OwnedRoomId, OwnedEventId, CanonicalJsonObject);
 )]
 pub(crate) async fn send_transaction_message_route(
 	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
+	ClientIp(client): ClientIp,
 	body: Ruma<send_transaction_message::v1::Request>,
 ) -> Result<send_transaction_message::v1::Response> {
 	if body.origin() != body.body.origin {

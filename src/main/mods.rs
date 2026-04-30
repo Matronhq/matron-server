@@ -1,7 +1,7 @@
-#![cfg(all(matron_server_mods, feature = "matron_server_mods"))]
+#![cfg(all(tuwunel_mods, feature = "tuwunel_mods"))]
 
 #[unsafe(no_link)]
-extern crate matron_server_service;
+extern crate tuwunel_service;
 
 use std::{
 	future::Future,
@@ -9,13 +9,13 @@ use std::{
 	sync::{Arc, atomic::Ordering},
 };
 
-use matron_server_core::{Error, Result, debug, error, mods};
-use matron_server_service::Services;
+use tuwunel_core::{Error, Result, debug, error, mods};
+use tuwunel_service::Services;
 
 use crate::Server;
 
 type StartFuncResult = Pin<Box<dyn Future<Output = Result<Arc<Services>>> + Send>>;
-type StartFuncProto = fn(&Arc<matron_server_core::Server>) -> StartFuncResult;
+type StartFuncProto = fn(&Arc<tuwunel_core::Server>) -> StartFuncResult;
 
 type RunFuncResult = Pin<Box<dyn Future<Output = Result> + Send>>;
 type RunFuncProto = fn(&Arc<Services>) -> RunFuncResult;
@@ -23,19 +23,19 @@ type RunFuncProto = fn(&Arc<Services>) -> RunFuncResult;
 type StopFuncResult = Pin<Box<dyn Future<Output = Result> + Send>>;
 type StopFuncProto = fn(Arc<Services>) -> StopFuncResult;
 
-const RESTART_THRESH: &str = "matron_server_service";
+const RESTART_THRESH: &str = "tuwunel_service";
 const MODULE_NAMES: &[&str] = &[
-	//"matron_server_core",
-	"matron_server_database",
-	"matron_server_service",
-	"matron_server_api",
-	"matron_server_admin",
-	"matron_server_router",
+	//"tuwunel_core",
+	"tuwunel_database",
+	"tuwunel_service",
+	"tuwunel_api",
+	"tuwunel_admin",
+	"tuwunel_router",
 ];
 
 #[cfg(panic_trap)]
-matron_server_core::mod_init! {{
-	matron_server_core::debug::set_panic_trap();
+tuwunel_core::mod_init! {{
+	tuwunel_core::debug::set_panic_trap();
 }}
 
 pub(crate) async fn run(server: &Arc<Server>, starts: bool) -> Result<(bool, bool), Error> {

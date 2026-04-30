@@ -2,7 +2,7 @@ use std::{borrow::Borrow, collections::HashMap, sync::Arc};
 
 use futures::{FutureExt, Stream, StreamExt, TryFutureExt, TryStreamExt};
 use ruma::{OwnedEventId, RoomId, RoomVersionId};
-use matron_server_core::{
+use tuwunel_core::{
 	Result, err, implement,
 	matrix::room_version,
 	trace,

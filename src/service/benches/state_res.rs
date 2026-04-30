@@ -1,5 +1,4 @@
 #![cfg(test)]
-#![allow(unused_features)] // 1.96.0-nightly 2026-03-07 bug
 
 use std::{
 	borrow::Borrow,
@@ -23,12 +22,12 @@ use serde_json::{
 	json,
 	value::{RawValue as RawJsonValue, to_raw_value as to_raw_json_value},
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Result, err,
 	matrix::{Event, EventHash, PduEvent, event::TypeExt},
 	utils::stream::IterStream,
 };
-use matron_server_service::rooms::state_res::{AuthSet, StateMap};
+use tuwunel_service::rooms::state_res::{AuthSet, StateMap};
 
 criterion_group!(
 	benches,
@@ -58,7 +57,7 @@ fn lexico_topo_sort(c: &mut Criterion) {
 		};
 
 		c.to_async(FuturesExecutor).iter(async || {
-			_ = matron_server_service::rooms::state_res::topological_sort(&graph, &async |_id| {
+			_ = tuwunel_service::rooms::state_res::topological_sort(&graph, &async |_id| {
 				Ok((int!(0).into(), MilliSecondsSinceUnixEpoch(uint!(0))))
 			})
 			.await;
@@ -86,7 +85,7 @@ fn resolution_shallow_auth_chain(c: &mut Criterion) {
 			.collect::<Vec<_>>();
 
 		let func = async || {
-			if let Err(e) = matron_server_service::rooms::state_res::resolve(
+			if let Err(e) = tuwunel_service::rooms::state_res::resolve(
 				&rules,
 				state_sets.clone().into_iter().stream(),
 				auth_chains.clone().into_iter().stream(),
@@ -169,7 +168,7 @@ fn resolve_deeper_event_set(c: &mut Criterion) {
 			.collect::<Vec<_>>();
 
 		let func = async || {
-			if let Err(e) = matron_server_service::rooms::state_res::resolve(
+			if let Err(e) = tuwunel_service::rooms::state_res::resolve(
 				&rules,
 				state_sets.clone().into_iter().stream(),
 				auth_chains.clone().into_iter().stream(),

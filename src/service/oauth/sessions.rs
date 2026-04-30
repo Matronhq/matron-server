@@ -10,11 +10,11 @@ use std::{
 use futures::{FutureExt, Stream, StreamExt, TryFutureExt, TryStreamExt};
 use ruma::{OwnedUserId, UserId};
 use serde::{Deserialize, Serialize};
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Result, at, implement,
 	utils::stream::{IterStream, ReadyExt, TryExpect},
 };
-use matron_server_database::{Cbor, Deserialized, Ignore, Map};
+use tuwunel_database::{Cbor, Deserialized, Ignore, Map};
 use url::Url;
 
 use super::{Provider, Providers, UserInfo, unique_id};

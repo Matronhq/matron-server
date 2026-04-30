@@ -1,13 +1,12 @@
 #![cfg(test)]
-#![allow(unused_features)] // 1.96.0-nightly 2026-03-07 bug
 
 use insta::{assert_debug_snapshot, with_settings};
 use tokio::{
 	select,
 	time::{Duration, sleep},
 };
-use matron_server::{Args, Runtime, Server};
-use matron_server_core::{Err, Result};
+use tuwunel::{Args, Runtime, Server};
+use tuwunel_core::{Err, Result};
 
 #[test]
 fn listener_init_ok() -> Result {
@@ -22,7 +21,7 @@ fn listener_init_ok() -> Result {
 		let result = runtime.block_on(async {
 			select! {
 				() = sleep(Duration::from_secs(5)) => Ok(()),
-				_ = matron_server::async_exec(&server) => Err!("Premature server shutdown"),
+				_ = tuwunel::async_exec(&server) => Err!("Premature server shutdown"),
 			}
 		});
 

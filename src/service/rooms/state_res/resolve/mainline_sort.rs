@@ -2,7 +2,7 @@ use futures::{
 	FutureExt, Stream, StreamExt, TryFutureExt, TryStreamExt, pin_mut, stream::try_unfold,
 };
 use ruma::{EventId, OwnedEventId, events::TimelineEventType};
-use matron_server_core::{
+use tuwunel_core::{
 	Error, Result, at, is_equal_to,
 	matrix::Event,
 	trace,

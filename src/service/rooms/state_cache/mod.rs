@@ -12,7 +12,7 @@ use ruma::{
 	events::{AnyStrippedStateEvent, AnySyncStateEvent, room::member::MembershipState},
 	serde::Raw,
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Result, implement,
 	result::LogErr,
 	trace,
@@ -23,7 +23,7 @@ use matron_server_core::{
 	},
 	warn,
 };
-use matron_server_database::{Deserialized, Ignore, Interfix, Map};
+use tuwunel_database::{Deserialized, Ignore, Interfix, Map};
 
 use crate::appservice::RegistrationInfo;
 

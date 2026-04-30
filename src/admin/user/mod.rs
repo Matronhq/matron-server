@@ -2,7 +2,7 @@ mod commands;
 
 use clap::Subcommand;
 use ruma::{OwnedDeviceId, OwnedEventId, OwnedRoomId, OwnedRoomOrAliasId, OwnedUserId};
-use matron_server_core::Result;
+use tuwunel_core::Result;
 
 use crate::admin_command_dispatch;
 

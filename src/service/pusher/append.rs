@@ -8,7 +8,7 @@ use ruma::{
 	push::{Action, Actions, Ruleset, Tweak},
 };
 use serde::{Deserialize, Serialize};
-use matron_server_core::{
+use tuwunel_core::{
 	Result, implement,
 	matrix::{
 		event::Event,
@@ -16,7 +16,7 @@ use matron_server_core::{
 	},
 	utils::{BoolExt, ReadyExt, future::TryExtExt, time::now_millis},
 };
-use matron_server_database::{Deserialized, Json, Map};
+use tuwunel_database::{Deserialized, Json, Map};
 
 use crate::rooms::short::ShortRoomId;
 

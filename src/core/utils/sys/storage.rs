@@ -179,7 +179,8 @@ pub fn name_from_path(path: &Path) -> Result<String> {
 }
 
 /// Get the (major, minor) of the block device on which Path is mounted.
-#[expect(
+//TODO: Use conditional cfg for expect() minding cross-platformness.
+#[allow(
 	clippy::useless_conversion,
 	clippy::unnecessary_fallible_conversions
 )]

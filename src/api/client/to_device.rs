@@ -8,8 +8,8 @@ use ruma::{
 	},
 	to_device::DeviceIdOrAllDevices,
 };
-use matron_server_core::{Error, Result, utils::ReadyExt};
-use matron_server_service::sending::EduBuf;
+use tuwunel_core::{Error, Result, utils::ReadyExt};
+use tuwunel_service::sending::EduBuf;
 
 use crate::Ruma;
 

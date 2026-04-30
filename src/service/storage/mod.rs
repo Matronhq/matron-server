@@ -5,7 +5,7 @@ use std::{collections::BTreeMap, path::PathBuf, sync::Arc};
 use async_trait::async_trait;
 use futures::TryStreamExt;
 pub use object_store::{CopyMode, GetResult, GetResultPayload, PutPayload, PutResult};
-use matron_server_core::{
+use tuwunel_core::{
 	Result, at,
 	config::{StorageProvider, StorageProviderLocal},
 	derivative::Derivative,
@@ -84,7 +84,7 @@ fn build_providers(args: &crate::Args<'_>) -> Result<Providers> {
 		)
 		.filter_map(|(name, conf)| match conf {
 			| StorageProvider::local(conf) => provider::local::new(args, name, conf).transpose(),
-			| StorageProvider::S3(conf) => provider::s3::new(args, name, conf).transpose(),
+			| StorageProvider::s3(conf) => provider::s3::new(args, name, conf).transpose(),
 			| _ => None,
 		})
 		.collect::<Result<_>>()
@@ -101,13 +101,12 @@ async fn start_providers(&self) -> Result {
 		.await
 }
 
-/// Get the specific storage provider's instance by ID or the default provider
-/// when an empty string supplied.
+/// Get the specific storage provider's instance by ID.
 #[implement(Service)]
 pub fn provider<'a>(&'a self, id: &'a str) -> Result<&'a Arc<Provider>> {
 	self.providers
 		.get(id)
-		.ok_or_else(|| err!(Request(NotFound("No instance of provider"))))
+		.ok_or_else(|| err!(Request(NotFound(error!("No instance of provider")))))
 }
 
 /// Get the specific storage provider's configuration by ID.

@@ -7,7 +7,7 @@ use ruma::{
 	serde::from_raw_json_value,
 };
 use serde::{Deserialize, de::IgnoredAny};
-use matron_server_core::{Error, Result, err, matrix::Event};
+use tuwunel_core::{Error, Result, err, matrix::Event};
 
 /// A helper type for an [`Event`] of type `m.room.create`.
 ///

@@ -7,8 +7,8 @@ use ruma::{
 	CanonicalJsonObject, CanonicalJsonValue, DeviceId, OwnedDeviceId, OwnedServerName,
 	OwnedUserId, ServerName, UserId, api::IncomingRequest,
 };
-use matron_server_core::{Error, Result, debug_warn, err, trace, utils::string::EMPTY};
-use matron_server_service::{Services, appservice::RegistrationInfo};
+use tuwunel_core::{Error, Result, debug_warn, err, trace, utils::string::EMPTY};
+use tuwunel_service::{Services, appservice::RegistrationInfo};
 
 use super::{auth, auth::Auth, request, request::Request};
 use crate::State;
@@ -89,7 +89,7 @@ where
 		ret(level = "trace"),
 	)]
 	async fn from_request(
-		request: hyper::Request<Body>,
+		request: http::Request<Body>,
 		services: &State,
 	) -> Result<Self, Self::Rejection> {
 		let mut request = request::from(services, request).await?;
@@ -139,8 +139,8 @@ where
 		.map_err(|e| err!(Request(BadJson(debug_warn!("{e}")))))
 }
 
-fn into_http_request(request: &Request, body: Bytes) -> hyper::Request<Bytes> {
-	let mut http_request = hyper::Request::builder()
+fn into_http_request(request: &Request, body: Bytes) -> http::Request<Bytes> {
+	let mut http_request = http::Request::builder()
 		.uri(request.parts.uri.clone())
 		.method(request.parts.method.clone());
 

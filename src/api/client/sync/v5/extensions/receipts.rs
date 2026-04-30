@@ -5,11 +5,11 @@ use ruma::{
 	events::{AnySyncEphemeralRoomEvent, receipt::SyncReceiptEvent},
 	serde::Raw,
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Result,
 	utils::{BoolExt, IterStream, stream::BroadbandExt},
 };
-use matron_server_service::{rooms::read_receipt::pack_receipts, sync::Room};
+use tuwunel_service::{rooms::read_receipt::pack_receipts, sync::Room};
 
 use super::{Connection, SyncInfo, Window, selector};
 

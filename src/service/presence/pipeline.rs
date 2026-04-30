@@ -4,21 +4,24 @@
 //! aggregation and timer logic in one place so the public `Service` surface
 //! remains small and the update flow is easy to review.
 
-use std::time::Duration;
+use std::{net::IpAddr, time::Duration};
 
 use futures::TryFutureExt;
 use ruma::{
 	DeviceId, OwnedUserId, UInt, UserId, events::presence::PresenceEvent, presence::PresenceState,
 };
 use tokio::time::sleep;
-use matron_server_core::{
+use tuwunel_core::{
 	Error, Result, debug, error,
 	result::LogErr,
 	trace,
 	utils::{future::OptionFutureExt, option::OptionExt},
 };
 
-use super::{Service, TimerFired, aggregate};
+use super::{
+	Service, TimerFired,
+	aggregate::{self, StatusMsg},
+};
 
 impl Service {
 	fn device_key(device_id: Option<&DeviceId>, is_remote: bool) -> aggregate::DeviceKey {
@@ -94,10 +97,11 @@ impl Service {
 		state: &PresenceState,
 		currently_active: Option<bool>,
 		last_active_ago: Option<UInt>,
-		status_msg: Option<String>,
+		status_msg: StatusMsg,
 		refresh_window_ms: Option<u64>,
 	) -> Result {
-		let now = matron_server_core::utils::millis_since_unix_epoch();
+		let now = tuwunel_core::utils::millis_since_unix_epoch();
+		let preserve_status = matches!(status_msg, StatusMsg::Unchanged);
 		// 1) Capture per-device presence snapshot for aggregation.
 		debug!(
 			?user_id,
@@ -189,11 +193,17 @@ impl Service {
 				);
 		}
 
-		// 6) Persist the aggregated presence, preserving last non-empty status.
-		let fallback_status = last_event
-			.and_then(|event| event.content.status_msg)
-			.filter(|msg| !msg.is_empty());
-		let status_msg = aggregated.status_msg.or(fallback_status);
+		// 6) Unchanged preserves the last non-empty status; explicit None clears it.
+		let fallback_status = || {
+			last_event
+				.and_then(|event| event.content.status_msg)
+				.filter(|msg| !msg.is_empty())
+		};
+
+		let status_msg = aggregated
+			.status_msg
+			.or_else(|| preserve_status.then(fallback_status).flatten());
+
 		let last_active_ago =
 			Some(UInt::new_saturating(now.saturating_sub(aggregated.last_active_ts)));
 
@@ -213,25 +223,19 @@ impl Service {
 		&self,
 		user_id: &UserId,
 		device_id: Option<&DeviceId>,
+		client_ip: Option<IpAddr>,
 		new_state: &PresenceState,
 	) -> Result {
 		const REFRESH_TIMEOUT: u64 = 30 * 1000;
 
 		if !self.services.server.config.allow_local_presence || self.services.db.is_read_only() {
-			debug!(
-				?user_id,
-				?new_state,
-				allow_local_presence = self.services.server.config.allow_local_presence,
-				read_only = self.services.db.is_read_only(),
-				"Skipping presence ping"
-			);
 			return Ok(());
 		}
 
 		let update_device_seen = device_id.map_async(|device_id| {
 			self.services
 				.users
-				.update_device_last_seen(user_id, device_id, None)
+				.update_device_last_seen(user_id, device_id, client_ip, None)
 		});
 
 		let currently_active = *new_state == PresenceState::Online;
@@ -241,7 +245,7 @@ impl Service {
 			new_state,
 			Some(currently_active),
 			UInt::new(0),
-			None,
+			StatusMsg::Unchanged,
 			Some(REFRESH_TIMEOUT),
 		);
 
@@ -267,7 +271,7 @@ impl Service {
 			state,
 			Some(currently_active),
 			None,
-			status_msg,
+			StatusMsg::Set(status_msg),
 			None,
 		)
 		.await
@@ -288,7 +292,7 @@ impl Service {
 			state,
 			Some(currently_active),
 			Some(last_active_ago),
-			status_msg,
+			StatusMsg::Set(status_msg),
 			None,
 		)
 		.await
@@ -341,7 +345,7 @@ impl Service {
 		}
 
 		let presence_state = presence.state().clone();
-		let now = matron_server_core::utils::millis_since_unix_epoch();
+		let now = tuwunel_core::utils::millis_since_unix_epoch();
 		let aggregated = self
 			.device_presence
 			.aggregate(user_id, now, self.idle_timeout, self.offline_timeout)

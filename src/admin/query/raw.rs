@@ -4,7 +4,7 @@ use base64::prelude::*;
 use clap::Subcommand;
 use futures::{FutureExt, StreamExt, TryStreamExt};
 use tokio::time::Instant;
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Result, apply, at, err, is_zero,
 	itertools::Itertools,
 	utils::{
@@ -14,8 +14,8 @@ use matron_server_core::{
 		string::EMPTY,
 	},
 };
-use matron_server_database::{KeyVal, Map};
-use matron_server_service::Services;
+use tuwunel_database::{KeyVal, Map};
+use tuwunel_service::Services;
 
 use crate::{admin_command, admin_command_dispatch};
 
@@ -25,6 +25,9 @@ use crate::{admin_command, admin_command_dispatch};
 pub(crate) enum RawCommand {
 	/// - List database maps
 	Maps,
+
+	/// - Current rocksdb sequence number.
+	Sequence,
 
 	/// - Raw database query
 	Get {
@@ -185,7 +188,7 @@ pub(super) async fn raw_compact(
 	parallelism: Option<usize>,
 	exhaustive: bool,
 ) -> Result {
-	use matron_server_database::compact::Options;
+	use tuwunel_database::compact::Options;
 
 	let maps = with_maps_or(maps.as_deref(), self.services)?;
 
@@ -254,20 +257,11 @@ pub(super) async fn raw_keys(
 
 	let map = self.services.db.get(map.as_str())?;
 	let timer = Instant::now();
-
 	let stream = match from.as_ref().or(prefix.as_ref()) {
-		| Some(from) =>
-			if !backwards {
-				map.raw_keys_from(from).boxed()
-			} else {
-				map.rev_raw_keys_from(from).boxed()
-			},
-		| None =>
-			if !backwards {
-				map.raw_keys().boxed()
-			} else {
-				map.rev_raw_keys().boxed()
-			},
+		| Some(from) if !backwards => map.raw_keys_from(from).boxed(),
+		| Some(from) => map.rev_raw_keys_from(from).boxed(),
+		| None if !backwards => map.raw_keys().boxed(),
+		| None => map.rev_raw_keys().boxed(),
 	};
 
 	let prefix = prefix.as_ref().map(String::as_bytes);
@@ -393,18 +387,10 @@ pub(super) async fn raw_iter(
 	let map = self.services.db.get(&map)?;
 	let timer = Instant::now();
 	let stream = match from.as_ref().or(prefix.as_ref()) {
-		| Some(from) =>
-			if !backwards {
-				map.raw_stream_from(from).boxed()
-			} else {
-				map.rev_raw_stream_from(from).boxed()
-			},
-		| None =>
-			if !backwards {
-				map.raw_stream().boxed()
-			} else {
-				map.rev_raw_stream().boxed()
-			},
+		| Some(from) if !backwards => map.raw_stream_from(from).boxed(),
+		| Some(from) => map.rev_raw_stream_from(from).boxed(),
+		| None if !backwards => map.raw_stream().boxed(),
+		| None => map.rev_raw_stream().boxed(),
 	};
 
 	let prefix = prefix.as_ref().map(String::as_bytes);
@@ -447,15 +433,17 @@ pub(super) async fn raw_clear(&self, map: String, confirm: bool) -> Result {
 
 	let timer = Instant::now();
 	let cork = self.services.db.cork();
-	map.raw_keys()
+	let count = map
+		.raw_keys()
 		.ignore_err()
-		.ready_for_each(|key| map.remove(&key))
+		.map(|key| map.remove(&key))
+		.count()
 		.boxed()
 		.await;
 
 	drop(cork);
 	let query_time = timer.elapsed();
-	self.write_str(&format!("Operation completed in {query_time:?}"))
+	self.write_string(format!("Operation completed in {query_time:?}\n\nremoved {count} keys\n"))
 		.await
 }
 
@@ -475,6 +463,13 @@ pub(super) async fn raw_get(&self, map: String, key: String, base64: bool) -> Re
 
 	self.write_str(&format!("Query completed in {query_time:?}:\n\n```rs\n{result:?}\n```"))
 		.await
+}
+
+#[admin_command]
+pub(super) async fn raw_sequence(&self) -> Result {
+	let sequence = self.services.db.engine.current_sequence();
+
+	self.write_str(&format!("{sequence:#?}")).await
 }
 
 #[admin_command]

@@ -13,7 +13,7 @@ use ruma::{
 		room::member::{MembershipState, RoomMemberEventContent},
 	},
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Result, error,
 	matrix::{Event, pdu::PduCount},
 	pair_of,
@@ -22,7 +22,7 @@ use matron_server_core::{
 		stream::BroadbandExt,
 	},
 };
-use matron_server_service::sync::Connection;
+use tuwunel_service::sync::Connection;
 
 use super::{SyncInfo, share_encrypted_room};
 
@@ -155,7 +155,11 @@ async fn collect_room(
 	let (encrypted_room, since_encryption, sender_joined_count) =
 		join3(encrypted_room, since_encryption, sender_joined_count).await;
 
-	if !encrypted_room {
+	if !encrypted_room
+		&& services
+			.config
+			.device_key_update_encrypted_rooms_only
+	{
 		return Ok(lists);
 	}
 

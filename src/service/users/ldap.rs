@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use ldap3::{LdapConnAsync, Scope, SearchEntry};
 use ruma::UserId;
-use matron_server_core::{Result, debug, err, error, implement, result::LogErr, trace};
+use tuwunel_core::{Result, debug, err, error, implement, result::LogErr, trace};
 
 /// Performs a LDAP search for the given user.
 ///

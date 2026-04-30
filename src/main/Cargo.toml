@@ -1,6 +1,6 @@
 [package]
-name = "matron-server"
-default-run = "matron-server"
+name = "tuwunel"
+default-run = "tuwunel"
 authors.workspace = true
 categories.workspace = true
 description.workspace = true
@@ -15,41 +15,41 @@ version.workspace = true
 metadata.crane.workspace = true
 
 [package.metadata.deb]
-name = "matron-server"
+name = "tuwunel"
 maintainer = "Jason Volk <jason@zemos.net>"
-copyright = "2025, Matron Contributors"
+copyright = "2025, Tuwunel Contributors"
 license-file = ["../../LICENSE", "3"]
 depends = "$auto, ca-certificates"
 extended-description = """\
 High performance Matrix homeserver written in Rust"""
 section = "net"
 priority = "optional"
-conf-files = ["/etc/matron-server/matron-server.toml"]
+conf-files = ["/etc/tuwunel/tuwunel.toml"]
 maintainer-scripts = "../../debian/"
-systemd-units = { unit-name = "matron-server", start = false }
+systemd-units = { unit-name = "tuwunel", start = false }
 assets = [
-	["../../debian/README.md", "usr/share/doc/matron-server/README.Debian", "644"],
-	["../../README.md", "usr/share/doc/matron-server/", "644"],
-	["target/release/matron-server", "usr/sbin/matron-server", "755"],
-	["../../matron-server-example.toml", "etc/matron-server/matron-server.toml", "640"],
+	["../../debian/README.md", "usr/share/doc/tuwunel/README.Debian", "644"],
+	["../../README.md", "usr/share/doc/tuwunel/", "644"],
+	["target/release/tuwunel", "usr/sbin/tuwunel", "755"],
+	["../../tuwunel-example.toml", "etc/tuwunel/tuwunel.toml", "640"],
 ]
 
 [package.metadata.generate-rpm]
-name = "matron-server"
+name = "tuwunel"
 summary = """\
 High performance Matrix homeserver written in Rust"""
 require-sh = false
 post_install_script = "rpm/postinst"
 assets = [
-	{ source = "target/release/matron-server", dest = "/usr/sbin/matron-server", mode = "755" },
-	{ source = "README.md", dest = "/usr/share/doc/matron-server/", mode = "644", doc = true },
-	{ source = "matron-server-example.toml", dest = "/etc/matron-server/matron-server.toml", mode = "640", config = "noreplace", user = "matron-server", group = "matron-server" },
-	{ source = "rpm/matron-server.service", dest = "/etc/systemd/system/", mode = "644" },
-	{ source = "rpm/sysusers", dest = "/usr/lib/sysusers.d/matron-server.conf", mode = "644" },
+	{ source = "target/release/tuwunel", dest = "/usr/sbin/tuwunel", mode = "755" },
+	{ source = "README.md", dest = "/usr/share/doc/tuwunel/", mode = "644", doc = true },
+	{ source = "tuwunel-example.toml", dest = "/etc/tuwunel/tuwunel.toml", mode = "640", config = "noreplace", user = "tuwunel", group = "tuwunel" },
+	{ source = "rpm/tuwunel.service", dest = "/etc/systemd/system/", mode = "644" },
+	{ source = "rpm/sysusers", dest = "/usr/lib/sysusers.d/tuwunel.conf", mode = "644" },
 ]
 
 [package.metadata.arch]
-name = "matron-server"
+name = "tuwunel"
 pkgdesc = "High performance Matrix homeserver written in Rust"
 
 [features]
@@ -68,82 +68,82 @@ default = [
 ]
 
 blurhashing = [
-	"matron-server-service/blurhashing",
+	"tuwunel-service/blurhashing",
 ]
 brotli_compression = [
-	"matron-server-admin/brotli_compression",
-	"matron-server-api/brotli_compression",
-	"matron-server-core/brotli_compression",
-	"matron-server-router/brotli_compression",
-	"matron-server-service/brotli_compression",
+	"tuwunel-admin/brotli_compression",
+	"tuwunel-api/brotli_compression",
+	"tuwunel-core/brotli_compression",
+	"tuwunel-router/brotli_compression",
+	"tuwunel-service/brotli_compression",
 ]
 bzip2_compression = [
-	"matron-server-admin/bzip2_compression",
-	"matron-server-api/bzip2_compression",
-	"matron-server-database/bzip2_compression",
-	"matron-server-router/bzip2_compression",
-	"matron-server-service/bzip2_compression",
+	"tuwunel-admin/bzip2_compression",
+	"tuwunel-api/bzip2_compression",
+	"tuwunel-database/bzip2_compression",
+	"tuwunel-router/bzip2_compression",
+	"tuwunel-service/bzip2_compression",
 ]
 console = [
-	"matron-server-core/console",
-	"matron-server-service/console",
+	"tuwunel-core/console",
+	"tuwunel-service/console",
 ]
 direct_tls = [
-    "matron-server-router/direct_tls"
+    "tuwunel-router/direct_tls"
 ]
 element_hacks = [
-	"matron-server-api/element_hacks",
-	"matron-server-service/element_hacks",
+	"tuwunel-api/element_hacks",
+	"tuwunel-service/element_hacks",
 ]
 gzip_compression = [
-	"matron-server-admin/gzip_compression",
-	"matron-server-api/gzip_compression",
-	"matron-server-core/gzip_compression",
-	"matron-server-router/gzip_compression",
-	"matron-server-service/gzip_compression",
+	"tuwunel-admin/gzip_compression",
+	"tuwunel-api/gzip_compression",
+	"tuwunel-core/gzip_compression",
+	"tuwunel-router/gzip_compression",
+	"tuwunel-service/gzip_compression",
 ]
 io_uring = [
-	"matron-server-admin/io_uring",
-	"matron-server-api/io_uring",
-	"matron-server-database/io_uring",
-	"matron-server-router/io_uring",
-	"matron-server-service/io_uring",
+	"tuwunel-admin/io_uring",
+	"tuwunel-api/io_uring",
+	"tuwunel-database/io_uring",
+	"tuwunel-router/io_uring",
+	"tuwunel-service/io_uring",
 ]
 jemalloc = [
-	"matron-server-admin/jemalloc",
-	"matron-server-api/jemalloc",
-	"matron-server-core/jemalloc",
-	"matron-server-database/jemalloc",
-	"matron-server-router/jemalloc",
-	"matron-server-service/jemalloc",
+	"tuwunel-admin/jemalloc",
+	"tuwunel-api/jemalloc",
+	"tuwunel-core/jemalloc",
+	"tuwunel-database/jemalloc",
+	"tuwunel-router/jemalloc",
+	"tuwunel-service/jemalloc",
 ]
 jemalloc_conf = [
-	"matron-server-admin/jemalloc_conf",
-	"matron-server-api/jemalloc_conf",
-	"matron-server-core/jemalloc_conf",
-	"matron-server-database/jemalloc_conf",
-	"matron-server-router/jemalloc_conf",
-	"matron-server-service/jemalloc_conf",
+	"tuwunel-admin/jemalloc_conf",
+	"tuwunel-api/jemalloc_conf",
+	"tuwunel-core/jemalloc_conf",
+	"tuwunel-database/jemalloc_conf",
+	"tuwunel-router/jemalloc_conf",
+	"tuwunel-service/jemalloc_conf",
 ]
 jemalloc_prof = [
-	"matron-server-core/jemalloc_prof",
+	"tuwunel-core/jemalloc_prof",
 ]
 jemalloc_stats = [
-	"matron-server-core/jemalloc_stats",
+	"tuwunel-core/jemalloc_stats",
 ]
 ldap = [
-	"matron-server-api/ldap",
-	"matron-server-service/ldap",
+	"tuwunel-api/ldap",
+	"tuwunel-service/ldap",
 ]
 lz4_compression = [
-	"matron-server-admin/lz4_compression",
-	"matron-server-api/lz4_compression",
-	"matron-server-database/lz4_compression",
-	"matron-server-router/lz4_compression",
-	"matron-server-service/lz4_compression",
+	"tuwunel-admin/lz4_compression",
+	"tuwunel-api/lz4_compression",
+	"tuwunel-database/lz4_compression",
+	"tuwunel-router/lz4_compression",
+	"tuwunel-service/lz4_compression",
 ]
 media_thumbnail = [
-	"matron-server-service/media_thumbnail",
+	"tuwunel-service/media_thumbnail",
 ]
 perf_measurements = [
 	"dep:opentelemetry",
@@ -151,8 +151,8 @@ perf_measurements = [
 	"dep:tracing-opentelemetry",
 	"dep:opentelemetry_sdk",
 	#"dep:opentelemetry-jaeger",
-	"matron-server-core/perf_measurements",
-	"matron-server-core/sentry_telemetry",
+	"tuwunel-core/perf_measurements",
+	"tuwunel-core/sentry_telemetry",
 ]
 # increases performance, reduces build times, and reduces binary size by not compiling or
 # genreating code for log level filters that users will generally not use (debug and trace)
@@ -161,22 +161,22 @@ release_max_log_level = [
 	"tracing/release_max_level_info",
 	"log/max_level_trace",
 	"log/release_max_level_info",
-	"matron-server-admin/release_max_log_level",
-	"matron-server-api/release_max_log_level",
-	"matron-server-core/release_max_log_level",
-	"matron-server-database/release_max_log_level",
-	"matron-server-router/release_max_log_level",
-	"matron-server-service/release_max_log_level",
+	"tuwunel-admin/release_max_log_level",
+	"tuwunel-api/release_max_log_level",
+	"tuwunel-core/release_max_log_level",
+	"tuwunel-database/release_max_log_level",
+	"tuwunel-router/release_max_log_level",
+	"tuwunel-service/release_max_log_level",
 ]
 sentry_telemetry = [
 	"dep:sentry",
 	"dep:sentry-tracing",
 	"dep:sentry-tower",
-	"matron-server-core/sentry_telemetry",
-	"matron-server-router/sentry_telemetry",
+	"tuwunel-core/sentry_telemetry",
+	"tuwunel-router/sentry_telemetry",
 ]
 systemd = [
-	"matron-server-router/systemd",
+	"tuwunel-router/systemd",
 ]
 # enable the tokio_console server ncompatible with release_max_log_level
 tokio_console = [
@@ -184,28 +184,28 @@ tokio_console = [
 	"tokio/tracing",
 ]
 url_preview = [
-	"matron-server-service/url_preview",
+	"tuwunel-service/url_preview",
 ]
 zstd_compression = [
-	"matron-server-admin/zstd_compression",
-	"matron-server-api/zstd_compression",
-	"matron-server-core/zstd_compression",
-	"matron-server-database/zstd_compression",
-	"matron-server-router/zstd_compression",
-	"matron-server-service/zstd_compression",
+	"tuwunel-admin/zstd_compression",
+	"tuwunel-api/zstd_compression",
+	"tuwunel-core/zstd_compression",
+	"tuwunel-database/zstd_compression",
+	"tuwunel-router/zstd_compression",
+	"tuwunel-service/zstd_compression",
 ]
-matron_server_mods = [
-	"matron-server-core/matron_server_mods",
+tuwunel_mods = [
+	"tuwunel-core/tuwunel_mods",
 ]
 
 [dependencies]
-matron-server-admin.workspace = true
-matron-server-api.workspace = true
-matron-server-core.workspace = true
-matron-server-database.workspace = true
-matron-server-macros.workspace = true
-matron-server-router.workspace = true
-matron-server-service.workspace = true
+tuwunel-admin.workspace = true
+tuwunel-api.workspace = true
+tuwunel-core.workspace = true
+tuwunel-database.workspace = true
+tuwunel-macros.workspace = true
+tuwunel-router.workspace = true
+tuwunel-service.workspace = true
 
 clap.workspace = true
 #console-subscriber.optional = true
@@ -251,7 +251,7 @@ bench = false
 crate-type = ["rlib"]
 
 [[bin]]
-name = "matron-server"
+name = "tuwunel"
 path = "main.rs"
 bench = false
 

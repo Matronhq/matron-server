@@ -9,7 +9,7 @@ use std::{
 };
 
 use ruma::{OwnedRoomId, OwnedUserId, RoomId, UserId};
-use matron_server_core::{debug, implement, trace, utils};
+use tuwunel_core::{debug, implement, trace, utils};
 
 use crate::rooms::timeline::RawPduId;
 

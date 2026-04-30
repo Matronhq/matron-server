@@ -8,7 +8,7 @@ use ruma::{
 		room::member::{MembershipState, RoomMemberEventContent},
 	},
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Result, implement,
 	matrix::{event::Event, pdu::PduBuilder, room_version},
 	utils::{IterStream, ReadyExt},

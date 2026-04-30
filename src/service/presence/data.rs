@@ -2,11 +2,11 @@ use std::sync::Arc;
 
 use futures::Stream;
 use ruma::{UInt, UserId, events::presence::PresenceEvent, presence::PresenceState};
-use matron_server_core::{
+use tuwunel_core::{
 	Result, debug_warn, utils,
 	utils::{ReadyExt, stream::TryIgnore},
 };
-use matron_server_database::{Deserialized, Json, Map};
+use tuwunel_database::{Deserialized, Json, Map};
 
 use super::Presence;
 

@@ -12,7 +12,7 @@ use ruma::{
 	push::{Action, PushFormat, Ruleset, Tweak},
 	uint,
 };
-use matron_server_core::{Err, Result, err, implement, matrix::Event};
+use tuwunel_core::{Err, Result, err, implement, matrix::Event};
 
 #[implement(super::Service)]
 #[tracing::instrument(level = "debug", skip_all)]

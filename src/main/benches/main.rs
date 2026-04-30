@@ -1,10 +1,9 @@
 #![cfg(test)]
-#![allow(unused_features)] // 1.96.0-nightly 2026-03-07 bug
 
 use criterion::{Criterion, criterion_group, criterion_main};
 use tracing::Level;
-use matron_server::{Args, Runtime, Server};
-use matron_server_core::result::ErrLog;
+use tuwunel::{Args, Runtime, Server};
+use tuwunel_core::result::ErrLog;
 
 criterion_group!(
 	name = benches;
@@ -23,15 +22,15 @@ fn smoke(c: &mut Criterion) {
 
 	runtime
 		.block_on(async {
-			matron_server::async_start(&server).await?;
-			let run = matron_server::async_run(&server);
+			tuwunel::async_start(&server).await?;
+			let run = tuwunel::async_run(&server);
 			c.bench_function("smoke", |c| {
 				c.iter(|| {});
 			});
 
 			server.server.shutdown().log_err(Level::WARN).ok();
 			run.await?;
-			matron_server::async_stop(&server).await
+			tuwunel::async_stop(&server).await
 		})
 		.unwrap();
 

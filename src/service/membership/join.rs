@@ -26,7 +26,7 @@ use ruma::{
 	room_version_rules::RoomVersionRules,
 };
 use serde_json::value::RawValue as RawJsonValue;
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Result, at, debug, debug_error, debug_info, debug_warn, err, error, implement, info,
 	matrix::{event::gen_event_id_canonical_json, room_version},
 	pdu::{Pdu, PduBuilder, check_rules},
@@ -151,7 +151,7 @@ pub async fn join_remote(
 	info!("make_join finished");
 
 	let Some(room_version_id) = make_join_response.room_version else {
-		return Err!(BadServerResponse("Remote room version is not supported by matron-server"));
+		return Err!(BadServerResponse("Remote room version is not supported by tuwunel"));
 	};
 
 	if !self
@@ -160,7 +160,7 @@ pub async fn join_remote(
 		.supported_room_version(&room_version_id)
 	{
 		return Err!(BadServerResponse(
-			"Remote room version {room_version_id} is not supported by matron-server"
+			"Remote room version {room_version_id} is not supported by tuwunel"
 		));
 	}
 
@@ -615,7 +615,7 @@ pub async fn join_local(
 	};
 
 	let Some(room_version_id) = make_join_response.room_version else {
-		return Err!(BadServerResponse("Remote room version is not supported by matron-server"));
+		return Err!(BadServerResponse("Remote room version is not supported by tuwunel"));
 	};
 
 	if !self
@@ -624,7 +624,7 @@ pub async fn join_local(
 		.supported_room_version(&room_version_id)
 	{
 		return Err!(BadServerResponse(
-			"Remote room version {room_version_id} is not supported by matron-server"
+			"Remote room version {room_version_id} is not supported by tuwunel"
 		));
 	}
 
@@ -820,12 +820,12 @@ async fn make_join_request(
 			if incompatible_room_version_count > 15 {
 				info!(
 					"15 servers have responded with M_INCOMPATIBLE_ROOM_VERSION or \
-					 M_UNSUPPORTED_ROOM_VERSION, assuming that matron-server does not support the \
+					 M_UNSUPPORTED_ROOM_VERSION, assuming that tuwunel does not support the \
 					 room version {room_id}: {e}"
 				);
 
 				make_join_response_and_server =
-					Err!(BadServerResponse("Room version is not supported by matron-server"));
+					Err!(BadServerResponse("Room version is not supported by tuwunel"));
 
 				return make_join_response_and_server;
 			}

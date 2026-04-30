@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, sync::Arc};
 
 use rocksdb::DBCompressionType as CompressionType;
-use matron_server_core::Result;
+use tuwunel_core::Result;
 
 use crate::{
 	Engine, Map,
@@ -146,6 +146,30 @@ pub(super) static MAPS: &[Descriptor] = &[
 		..descriptor::RANDOM_SMALL
 	},
 	Descriptor {
+		name: "oidc_signingkey",
+		..descriptor::RANDOM_SMALL
+	},
+	Descriptor {
+		name: "oidcclientid_registration",
+		..descriptor::RANDOM_SMALL
+	},
+	Descriptor {
+		name: "oidccode_authsession",
+		..descriptor::RANDOM_SMALL
+	},
+	Descriptor {
+		name: "oidcdevice_userdeviceid",
+		..descriptor::RANDOM_SMALL
+	},
+	Descriptor {
+		name: "oidccskeybypass_userid",
+		..descriptor::RANDOM_SMALL
+	},
+	Descriptor {
+		name: "oidcreqid_authrequest",
+		..descriptor::RANDOM_SMALL
+	},
+	Descriptor {
 		name: "onetimekeyid_onetimekeys",
 		..descriptor::RANDOM_SMALL
 	},
@@ -219,6 +243,16 @@ pub(super) static MAPS: &[Descriptor] = &[
 		name: "roomid_shortstatehash",
 		val_size_hint: Some(8),
 		..descriptor::RANDOM_SMALL
+	},
+	Descriptor {
+		name: "roomid_spacehierarchy",
+		limit_size: 1024 * 1024 * 64,
+		..descriptor::RANDOM_SMALL_CACHE
+	},
+	Descriptor {
+		name: "roomid_ts_pducount",
+		val_size_hint: Some(8),
+		..descriptor::RANDOM
 	},
 	Descriptor {
 		name: "roomserverids",
@@ -409,7 +443,7 @@ pub(super) static MAPS: &[Descriptor] = &[
 	},
 	Descriptor {
 		name: "userdevicesessionid_uiaainfo",
-		..descriptor::RANDOM_SMALL
+		..descriptor::RANDOM_SMALL_CACHE
 	},
 	Descriptor {
 		name: "userdevicetxnid_response",

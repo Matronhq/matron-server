@@ -1,22 +1,21 @@
 #![expect(deprecated)]
 
 use axum::extract::State;
-use axum_client_ip::InsecureClientIp;
 use reqwest::Url;
 use ruma::{
 	Mxc,
 	api::client::media::{
-		create_content, get_content, get_content_as_filename, get_content_thumbnail,
-		get_media_config, get_media_preview,
+		get_content, get_content_as_filename, get_content_thumbnail, get_media_config,
+		get_media_preview,
 	},
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Result, err,
 	utils::{content_disposition::make_content_disposition, math::ruma_from_usize},
 };
-use matron_server_service::media::{CACHE_CONTROL_IMMUTABLE, CORP_CROSS_ORIGIN, Dim, Media};
+use tuwunel_service::media::{CACHE_CONTROL_IMMUTABLE, CORP_CROSS_ORIGIN, Dim, Media};
 
-use crate::{Ruma, RumaResponse, client::create_content_route};
+use crate::{ClientIp, Ruma};
 
 /// # `GET /_matrix/media/v3/config`
 ///
@@ -30,29 +29,13 @@ pub(crate) async fn get_media_config_legacy_route(
 	})
 }
 
-/// # `GET /_matrix/media/v1/config`
-///
-/// This is a legacy endpoint ("/v1/") that some very old homeservers and/or
-/// clients may call. Matron Server adds these for compatibility purposes.
-/// See <https://spec.matrix.org/legacy/legacy/#id27>
-///
-/// Returns max upload size.
-pub(crate) async fn get_media_config_legacy_legacy_route(
-	State(services): State<crate::State>,
-	body: Ruma<get_media_config::v3::Request>,
-) -> Result<RumaResponse<get_media_config::v3::Response>> {
-	get_media_config_legacy_route(State(services), body)
-		.await
-		.map(RumaResponse)
-}
-
 /// # `GET /_matrix/media/v3/preview_url`
 ///
 /// Returns URL preview.
 #[tracing::instrument(skip_all, fields(%client), name = "url_preview_legacy", level = "debug")]
 pub(crate) async fn get_media_preview_legacy_route(
 	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
+	ClientIp(client): ClientIp,
 	body: Ruma<get_media_preview::v3::Request>,
 ) -> Result<get_media_preview::v3::Response> {
 	let sender_user = body.sender_user();
@@ -89,43 +72,6 @@ pub(crate) async fn get_media_preview_legacy_route(
 		})
 }
 
-/// # `GET /_matrix/media/v1/preview_url`
-///
-/// This is a legacy endpoint ("/v1/") that some very old homeservers and/or
-/// clients may call. Matron Server adds these for compatibility purposes.
-/// See <https://spec.matrix.org/legacy/legacy/#id27>
-///
-/// Returns URL preview.
-pub(crate) async fn get_media_preview_legacy_legacy_route(
-	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
-	body: Ruma<get_media_preview::v3::Request>,
-) -> Result<RumaResponse<get_media_preview::v3::Response>> {
-	get_media_preview_legacy_route(State(services), InsecureClientIp(client), body)
-		.await
-		.map(RumaResponse)
-}
-
-/// # `POST /_matrix/media/v1/upload`
-///
-/// Permanently save media in the server.
-///
-/// This is a legacy endpoint ("/v1/") that some very old homeservers and/or
-/// clients may call. Matron Server adds these for compatibility purposes.
-/// See <https://spec.matrix.org/legacy/legacy/#id27>
-///
-/// - Some metadata will be saved in the database
-/// - Media will be saved in the media/ directory
-pub(crate) async fn create_content_legacy_route(
-	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
-	body: Ruma<create_content::v3::Request>,
-) -> Result<RumaResponse<create_content::v3::Response>> {
-	create_content_route(State(services), InsecureClientIp(client), body)
-		.await
-		.map(RumaResponse)
-}
-
 /// # `GET /_matrix/media/v3/download/{serverName}/{mediaId}`
 ///
 /// Load media from our server or over federation.
@@ -137,7 +83,7 @@ pub(crate) async fn create_content_legacy_route(
 #[tracing::instrument(skip_all, fields(%client), name = "media_get_legacy", level = "debug")]
 pub(crate) async fn get_content_legacy_route(
 	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
+	ClientIp(client): ClientIp,
 	body: Ruma<get_content::v3::Request>,
 ) -> Result<get_content::v3::Response> {
 	let mxc = Mxc {
@@ -147,10 +93,10 @@ pub(crate) async fn get_content_legacy_route(
 
 	match services
 		.media
-		.get_with_timeout(&mxc, body.timeout_ms)
-		.await?
+		.get(&mxc, Some(body.timeout_ms))
+		.await
 	{
-		| Some(Media {
+		| Ok(Media {
 			content,
 			content_type,
 			content_disposition,
@@ -169,7 +115,7 @@ pub(crate) async fn get_content_legacy_route(
 				cache_control: Some(CACHE_CONTROL_IMMUTABLE.into()),
 			})
 		},
-		| _ =>
+		| Err(e) =>
 			if !services.globals.server_is_ours(&body.server_name) && body.allow_remote {
 				let response = services
 					.media
@@ -193,32 +139,9 @@ pub(crate) async fn get_content_legacy_route(
 					cache_control: Some(CACHE_CONTROL_IMMUTABLE.into()),
 				})
 			} else {
-				Err!(Request(NotFound("Media not found.")))
+				Err(e)
 			},
 	}
-}
-
-/// # `GET /_matrix/media/v1/download/{serverName}/{mediaId}`
-///
-/// Load media from our server or over federation.
-///
-/// This is a legacy endpoint ("/v1/") that some very old homeservers and/or
-/// clients may call. Matron Server adds these for compatibility purposes.
-/// See <https://spec.matrix.org/legacy/legacy/#id27>
-///
-/// - Only allows federation if `allow_remote` is true
-/// - Only redirects if `allow_redirect` is true
-/// - Uses client-provided `timeout_ms` if available, else defaults to 20
-///   seconds
-#[tracing::instrument(skip_all, fields(%client), name = "media_get_legacy", level = "debug")]
-pub(crate) async fn get_content_legacy_legacy_route(
-	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
-	body: Ruma<get_content::v3::Request>,
-) -> Result<RumaResponse<get_content::v3::Response>> {
-	get_content_legacy_route(State(services), InsecureClientIp(client), body)
-		.await
-		.map(RumaResponse)
 }
 
 /// # `GET /_matrix/media/v3/download/{serverName}/{mediaId}/{fileName}`
@@ -232,7 +155,7 @@ pub(crate) async fn get_content_legacy_legacy_route(
 #[tracing::instrument(skip_all, fields(%client), name = "media_get_legacy", level = "debug")]
 pub(crate) async fn get_content_as_filename_legacy_route(
 	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
+	ClientIp(client): ClientIp,
 	body: Ruma<get_content_as_filename::v3::Request>,
 ) -> Result<get_content_as_filename::v3::Response> {
 	let mxc = Mxc {
@@ -242,10 +165,10 @@ pub(crate) async fn get_content_as_filename_legacy_route(
 
 	match services
 		.media
-		.get_with_timeout(&mxc, body.timeout_ms)
-		.await?
+		.get(&mxc, Some(body.timeout_ms))
+		.await
 	{
-		| Some(Media {
+		| Ok(Media {
 			content,
 			content_type,
 			content_disposition,
@@ -264,7 +187,7 @@ pub(crate) async fn get_content_as_filename_legacy_route(
 				cache_control: Some(CACHE_CONTROL_IMMUTABLE.into()),
 			})
 		},
-		| _ =>
+		| Err(e) =>
 			if !services.globals.server_is_ours(&body.server_name) && body.allow_remote {
 				let response = services
 					.media
@@ -288,31 +211,9 @@ pub(crate) async fn get_content_as_filename_legacy_route(
 					cache_control: Some(CACHE_CONTROL_IMMUTABLE.into()),
 				})
 			} else {
-				Err!(Request(NotFound("Media not found.")))
+				Err(e)
 			},
 	}
-}
-
-/// # `GET /_matrix/media/v1/download/{serverName}/{mediaId}/{fileName}`
-///
-/// Load media from our server or over federation, permitting desired filename.
-///
-/// This is a legacy endpoint ("/v1/") that some very old homeservers and/or
-/// clients may call. Matron Server adds these for compatibility purposes.
-/// See <https://spec.matrix.org/legacy/legacy/#id27>
-///
-/// - Only allows federation if `allow_remote` is true
-/// - Only redirects if `allow_redirect` is true
-/// - Uses client-provided `timeout_ms` if available, else defaults to 20
-///   seconds
-pub(crate) async fn get_content_as_filename_legacy_legacy_route(
-	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
-	body: Ruma<get_content_as_filename::v3::Request>,
-) -> Result<RumaResponse<get_content_as_filename::v3::Response>> {
-	get_content_as_filename_legacy_route(State(services), InsecureClientIp(client), body)
-		.await
-		.map(RumaResponse)
 }
 
 /// # `GET /_matrix/media/v3/thumbnail/{serverName}/{mediaId}`
@@ -326,7 +227,7 @@ pub(crate) async fn get_content_as_filename_legacy_legacy_route(
 #[tracing::instrument(skip_all, fields(%client), name = "media_thumbnail_get_legacy", level = "debug")]
 pub(crate) async fn get_content_thumbnail_legacy_route(
 	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
+	ClientIp(client): ClientIp,
 	body: Ruma<get_content_thumbnail::v3::Request>,
 ) -> Result<get_content_thumbnail::v3::Response> {
 	let mxc = Mxc {
@@ -337,10 +238,10 @@ pub(crate) async fn get_content_thumbnail_legacy_route(
 	let dim = Dim::from_ruma(body.width, body.height, body.method.clone())?;
 	match services
 		.media
-		.get_thumbnail_with_timeout(&mxc, &dim, body.timeout_ms)
-		.await?
+		.get_thumbnail(&mxc, &dim, Some(body.timeout_ms))
+		.await
 	{
-		| Some(Media {
+		| Ok(Media {
 			content,
 			content_type,
 			content_disposition,
@@ -359,7 +260,7 @@ pub(crate) async fn get_content_thumbnail_legacy_route(
 				content_disposition: Some(content_disposition),
 			})
 		},
-		| _ =>
+		| Err(e) =>
 			if !services.globals.server_is_ours(&body.server_name) && body.allow_remote {
 				let response = services
 					.media
@@ -383,29 +284,7 @@ pub(crate) async fn get_content_thumbnail_legacy_route(
 					content_disposition: Some(content_disposition),
 				})
 			} else {
-				Err!(Request(NotFound("Media not found.")))
+				Err(e)
 			},
 	}
-}
-
-/// # `GET /_matrix/media/v1/thumbnail/{serverName}/{mediaId}`
-///
-/// Load media thumbnail from our server or over federation.
-///
-/// This is a legacy endpoint ("/v1/") that some very old homeservers and/or
-/// clients may call. Matron Server adds these for compatibility purposes.
-/// See <https://spec.matrix.org/legacy/legacy/#id27>
-///
-/// - Only allows federation if `allow_remote` is true
-/// - Only redirects if `allow_redirect` is true
-/// - Uses client-provided `timeout_ms` if available, else defaults to 20
-///   seconds
-pub(crate) async fn get_content_thumbnail_legacy_legacy_route(
-	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
-	body: Ruma<get_content_thumbnail::v3::Request>,
-) -> Result<RumaResponse<get_content_thumbnail::v3::Response>> {
-	get_content_thumbnail_legacy_route(State(services), InsecureClientIp(client), body)
-		.await
-		.map(RumaResponse)
 }

@@ -1,7 +1,6 @@
 use std::cmp;
 
 use axum::extract::State;
-use axum_client_ip::InsecureClientIp;
 use futures::{
 	FutureExt, StreamExt, TryFutureExt,
 	future::{join, join4, join5},
@@ -22,7 +21,7 @@ use ruma::{
 	events::StateEventType,
 	uint,
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Result, err, info,
 	matrix::Event,
 	utils::{
@@ -31,9 +30,9 @@ use matron_server_core::{
 		stream::{IterStream, ReadyExt, WidebandExt},
 	},
 };
-use matron_server_service::Services;
+use tuwunel_service::Services;
 
-use crate::Ruma;
+use crate::{ClientIp, Ruma};
 
 /// # `POST /_matrix/client/v3/publicRooms`
 ///
@@ -43,7 +42,7 @@ use crate::Ruma;
 #[tracing::instrument(skip_all, fields(%client), name = "publicrooms")]
 pub(crate) async fn get_public_rooms_filtered_route(
 	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
+	ClientIp(client): ClientIp,
 	body: Ruma<get_public_rooms_filtered::v3::Request>,
 ) -> Result<get_public_rooms_filtered::v3::Response> {
 	check_server_banned(&services, body.server.as_deref())?;
@@ -72,7 +71,7 @@ pub(crate) async fn get_public_rooms_filtered_route(
 #[tracing::instrument(skip_all, fields(%client), name = "publicrooms")]
 pub(crate) async fn get_public_rooms_route(
 	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
+	ClientIp(client): ClientIp,
 	body: Ruma<get_public_rooms::v3::Request>,
 ) -> Result<get_public_rooms::v3::Response> {
 	check_server_banned(&services, body.server.as_deref())?;
@@ -104,7 +103,7 @@ pub(crate) async fn get_public_rooms_route(
 #[tracing::instrument(skip_all, fields(%client), name = "room_directory")]
 pub(crate) async fn set_room_visibility_route(
 	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
+	ClientIp(client): ClientIp,
 	body: Ruma<set_room_visibility::v3::Request>,
 ) -> Result<set_room_visibility::v3::Response> {
 	let sender_user = body.sender_user();

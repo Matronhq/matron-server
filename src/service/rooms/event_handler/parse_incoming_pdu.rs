@@ -1,6 +1,6 @@
 use ruma::{CanonicalJsonObject, CanonicalJsonValue, OwnedEventId, OwnedRoomId};
 use serde_json::value::RawValue as RawJsonValue;
-use matron_server_core::{Result, err, implement, matrix::event::gen_event_id, result::FlatOk};
+use tuwunel_core::{Result, err, implement, matrix::event::gen_event_id, result::FlatOk};
 
 type Parsed = (OwnedRoomId, OwnedEventId, CanonicalJsonObject);
 

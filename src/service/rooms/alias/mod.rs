@@ -5,12 +5,12 @@ use ruma::{
 	OwnedRoomId, OwnedServerName, OwnedUserId, RoomAliasId, RoomId, RoomOrAliasId, UserId,
 	api::federation::query::get_room_information::v1::Request, events::StateEventType,
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Result, err,
 	matrix::Event,
 	utils::{ReadyExt, stream::TryIgnore},
 };
-use matron_server_database::{Deserialized, Ignore, Interfix, Map};
+use tuwunel_database::{Deserialized, Ignore, Interfix, Map};
 
 use crate::appservice::RegistrationInfo;
 

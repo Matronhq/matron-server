@@ -5,19 +5,20 @@ use std::{collections::BTreeMap, sync::Arc};
 use futures::{Stream, TryFutureExt, try_join};
 use ruma::{
 	OwnedEventId, OwnedUserId, RoomId, UserId,
+	api::appservice::event::push_events::v1::EphemeralData,
 	events::{
 		AnySyncEphemeralRoomEvent, SyncEphemeralRoomEvent,
 		receipt::{ReceiptEvent, ReceiptEventContent, Receipts},
 	},
 	serde::Raw,
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Result, debug, err,
 	matrix::{
 		Event,
 		pdu::{PduCount, PduId, RawPduId},
 	},
-	warn,
+	trace, warn,
 };
 
 use self::data::{Data, ReceiptItem};
@@ -47,10 +48,26 @@ impl Service {
 		room_id: &RoomId,
 		event: &ReceiptEvent,
 	) {
+		// update local
 		self.db
 			.readreceipt_update(user_id, room_id, event)
 			.await;
 
+		// update appservices
+		self.services
+			.sending
+			.send_edu_room_appservices(room_id, |buf| {
+				let edu = EphemeralData::Receipt(ReceiptEvent {
+					content: event.content.clone(),
+					room_id: room_id.to_owned(),
+				});
+
+				Ok(serde_json::to_writer(buf, &edu)?)
+			})
+			.await
+			.expect("edu serialization or flush failed");
+
+		// update federation
 		if self.services.globals.user_is_local(user_id) {
 			self.services
 				.sending
@@ -205,7 +222,8 @@ where
 	}
 
 	let content = ReceiptEventContent::from_iter(json);
-	matron_server_core::trace!(?content);
+
+	trace!(?content);
 	Raw::from_json(
 		serde_json::value::to_raw_value(&SyncEphemeralRoomEvent { content })
 			.expect("received valid json"),

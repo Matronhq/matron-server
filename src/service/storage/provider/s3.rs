@@ -2,7 +2,7 @@ use std::{sync::Arc, time::Duration};
 
 pub use object_store::{GetResult, GetResultPayload, PutPayload, PutResult};
 use object_store::{aws::AmazonS3Builder, client::ClientOptions};
-use matron_server_core::{
+use tuwunel_core::{
 	Result,
 	config::{StorageProvider, StorageProviderS3},
 	debug, debug_info, error, trace,
@@ -97,7 +97,7 @@ pub(in super::super) fn new(
 	let provider = Provider {
 		name: name.to_owned(),
 		base_path: config.base_path.clone().map(Into::into),
-		config: StorageProvider::S3(config.clone()),
+		config: StorageProvider::s3(config.clone()),
 		startup_check: config.startup_check,
 		services: args.services.clone(),
 		provider,

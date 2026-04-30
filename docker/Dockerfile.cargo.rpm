@@ -8,35 +8,17 @@ ARG CARGO_HOME
 ARG CARGO_TARGET
 ARG CARGO_TARGET_DIR
 ARG cargo_target_profile
-ARG cargo_target_artifact
-ARG cargo_target_share
-ARG cargo_share
 ARG cargo_profile
 ARG cargo_features
 ARG cargo_spec_features
-ARG targ_dir="${CARGO_TARGET_DIR}/${cargo_target_profile}"
-ARG targ_targ_dir="${CARGO_TARGET_DIR}/${rust_target}/${cargo_target_profile}"
 ARG pkg_dir
 ARG gen_rpm_args=""
 
-WORKDIR /
-COPY --link --from=input . .
-
-WORKDIR /usr/src/matron-server
+WORKDIR /usr/src/tuwunel
 RUN \
 --mount=type=cache,dst=${RUSTUP_HOME}/downloads,sharing=shared \
 --mount=type=cache,dst=${CARGO_HOME}/registry,sharing=shared \
 --mount=type=cache,dst=${CARGO_HOME}/git,sharing=shared \
---mount=type=cache,dst=${targ_dir}/deps,id=${cargo_share}/deps,sharing=locked \
---mount=type=cache,dst=${targ_dir}/build,id=${cargo_share}/build,sharing=locked \
---mount=type=cache,dst=${targ_dir}/examples,id=${cargo_share}/examples,sharing=locked \
---mount=type=cache,dst=${targ_dir}/incremental,id=${cargo_share}/incremental,sharing=locked \
---mount=type=cache,dst=${targ_dir}/.fingerprint,id=${cargo_share}/fingerprint,sharing=locked \
---mount=type=cache,dst=${targ_targ_dir}/deps,id=${cargo_target_share}/deps,sharing=locked \
---mount=type=cache,dst=${targ_targ_dir}/build,id=${cargo_target_share}/build,sharing=locked \
---mount=type=cache,dst=${targ_targ_dir}/examples,id=${cargo_target_share}/examples,sharing=locked \
---mount=type=cache,dst=${targ_targ_dir}/incremental,id=${cargo_target_share}/incremental,sharing=locked \
---mount=type=cache,dst=${targ_targ_dir}/.fingerprint,id=${cargo_target_share}/fingerprint,sharing=locked \
 <<EOF
 	set -eux
 	mkdir -p "${pkg_dir}"
@@ -51,26 +33,23 @@ RUN \
 			--output "${pkg_dir}" \
 			${gen_rpm_args}
 
-	mv ${pkg_dir}/* "${pkg_dir}/matron-server.rpm"
+	mv ${pkg_dir}/* "${pkg_dir}/tuwunel.rpm"
 EOF
 
 
 FROM scratch AS rpm
 ARG pkg_dir
 
-COPY --from=input ${pkg_dir}/matron-server.rpm .
+COPY --from=input ${pkg_dir}/tuwunel.rpm .
 
 
 FROM input AS rpm-install
 ARG pkg_dir
 
-WORKDIR /
-COPY --link --from=input . .
-
 WORKDIR ${pkg_dir}
 COPY --link --from=rpm . .
 RUN <<EOF
 	set -eux
-	rpm -i --test matron-server.rpm
-	rpm -i matron-server.rpm
+	rpm -i --test tuwunel.rpm
+	rpm -i tuwunel.rpm
 EOF

@@ -3,9 +3,9 @@ mod filter;
 mod rooms;
 mod selector;
 
-use std::{collections::BTreeMap, fmt::Debug, time::Duration};
+use std::{collections::BTreeMap, fmt::Debug, sync::Arc, time::Duration};
 
-use axum::extract::State;
+use axum::extract::{Extension, State};
 use futures::{
 	FutureExt, TryFutureExt,
 	future::{join, try_join},
@@ -15,8 +15,11 @@ use ruma::{
 	api::client::sync::sync_events::v5::{ListId, Request, Response, response},
 	events::room::member::MembershipState,
 };
-use tokio::time::{Instant, timeout_at};
-use matron_server_core::{
+use tokio::{
+	sync::Notify,
+	time::{Instant, timeout_at},
+};
+use tuwunel_core::{
 	Err, Result, debug,
 	debug::INFO_SPAN_LEVEL,
 	debug_warn,
@@ -25,13 +28,13 @@ use matron_server_core::{
 	trace,
 	utils::{TryFutureExtExt, result::FlatOk},
 };
-use matron_server_service::{
+use tuwunel_service::{
 	Services,
 	sync::{Connection, into_connection_key},
 };
 
 use super::share_encrypted_room;
-use crate::Ruma;
+use crate::{ClientIp, Ruma};
 
 #[derive(Copy, Clone)]
 struct SyncInfo<'a> {
@@ -75,6 +78,8 @@ type ListIds = SmallVec<[ListId; 1]>;
 	)
 )]
 pub(crate) async fn sync_events_v5_route(
+	Extension(interrupted): Extension<Arc<Notify>>,
+	ClientIp(client): ClientIp,
 	State(ref services): State<crate::State>,
 	body: Ruma<Request>,
 ) -> Result<Response> {
@@ -105,7 +110,7 @@ pub(crate) async fn sync_events_v5_route(
 	let conn = conn_val.lock();
 	let ping_presence = services
 		.presence
-		.maybe_ping_presence(sender_user, sender_device, &request.set_presence)
+		.maybe_ping_presence(sender_user, sender_device, Some(client), &request.set_presence)
 		.inspect_err(inspect_log)
 		.ok();
 
@@ -190,15 +195,16 @@ pub(crate) async fn sync_events_v5_route(
 			}
 		}
 
-		if timeout == 0
-			|| services.server.is_stopping()
-			|| timeout_at(stop_at, watchers)
-				.boxed()
-				.await
-				.is_err()
-		{
+		let waiter = async || {
+			tokio::select! {
+				() = interrupted.notified() => true,
+				watch = timeout_at(stop_at, watchers) => watch.is_err(),
+			}
+		};
+
+		if timeout == 0 || services.server.is_stopping() || waiter().boxed().await {
 			response.pos = conn.next_batch.to_string().into();
-			trace!(conn.globalsince, conn.next_batch, "timeout; empty response {response:?}");
+			trace!(conn.globalsince, conn.next_batch, "empty response {response:?}");
 			conn.store(&services.sync, &conn_key);
 			return Ok(response);
 		}

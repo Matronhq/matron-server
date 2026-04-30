@@ -1,11 +1,9 @@
 use axum::extract::State;
-use axum_client_ip::InsecureClientIp;
 use futures::StreamExt;
 use ruma::{
 	OwnedRoomId,
 	api::{
 		client::{
-			error::ErrorKind,
 			membership::mutual_rooms,
 			profile::{
 				ProfileFieldName, ProfileFieldValue, delete_profile_field, delete_timezone_key,
@@ -16,9 +14,9 @@ use ruma::{
 	},
 	presence::PresenceState,
 };
-use matron_server_core::{Err, Error, Result, err};
+use tuwunel_core::{Err, Result, err};
 
-use crate::Ruma;
+use crate::{ClientIp, Ruma};
 
 /// # `GET /_matrix/client/unstable/uk.half-shot.msc2666/user/mutual_rooms`
 ///
@@ -30,7 +28,7 @@ use crate::Ruma;
 #[tracing::instrument(skip_all, fields(%client), name = "mutual_rooms")]
 pub(crate) async fn get_mutual_rooms_route(
 	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
+	ClientIp(client): ClientIp,
 	body: Ruma<mutual_rooms::unstable::Request>,
 ) -> Result<mutual_rooms::unstable::Response> {
 	let sender_user = body.sender_user();
@@ -63,6 +61,7 @@ pub(crate) async fn get_mutual_rooms_route(
 /// - Also makes sure other users receive the update using presence EDUs
 pub(crate) async fn delete_timezone_key_route(
 	State(services): State<crate::State>,
+	ClientIp(client): ClientIp,
 	body: Ruma<delete_timezone_key::unstable::Request>,
 ) -> Result<delete_timezone_key::unstable::Response> {
 	let sender_user = body.sender_user();
@@ -76,7 +75,12 @@ pub(crate) async fn delete_timezone_key_route(
 	// Presence update
 	services
 		.presence
-		.maybe_ping_presence(&body.user_id, body.sender_device.as_deref(), &PresenceState::Online)
+		.maybe_ping_presence(
+			&body.user_id,
+			body.sender_device.as_deref(),
+			Some(client),
+			&PresenceState::Online,
+		)
 		.await?;
 
 	Ok(delete_timezone_key::unstable::Response {})
@@ -89,6 +93,7 @@ pub(crate) async fn delete_timezone_key_route(
 /// - Also makes sure other users receive the update using presence EDUs
 pub(crate) async fn set_timezone_key_route(
 	State(services): State<crate::State>,
+	ClientIp(client): ClientIp,
 	body: Ruma<set_timezone_key::unstable::Request>,
 ) -> Result<set_timezone_key::unstable::Response> {
 	let sender_user = body.sender_user();
@@ -104,7 +109,12 @@ pub(crate) async fn set_timezone_key_route(
 	// Presence update
 	services
 		.presence
-		.maybe_ping_presence(&body.user_id, body.sender_device.as_deref(), &PresenceState::Online)
+		.maybe_ping_presence(
+			&body.user_id,
+			body.sender_device.as_deref(),
+			Some(client),
+			&PresenceState::Online,
+		)
 		.await?;
 
 	Ok(set_timezone_key::unstable::Response {})
@@ -117,6 +127,7 @@ pub(crate) async fn set_timezone_key_route(
 /// This also handles the avatar_url and displayname being updated.
 pub(crate) async fn set_profile_field_route(
 	State(services): State<crate::State>,
+	ClientIp(client): ClientIp,
 	body: Ruma<set_profile_field::v3::Request>,
 ) -> Result<set_profile_field::v3::Response> {
 	let sender_user = body.sender_user();
@@ -168,7 +179,12 @@ pub(crate) async fn set_profile_field_route(
 	// Presence update
 	services
 		.presence
-		.maybe_ping_presence(&body.user_id, body.sender_device.as_deref(), &PresenceState::Online)
+		.maybe_ping_presence(
+			&body.user_id,
+			body.sender_device.as_deref(),
+			Some(client),
+			&PresenceState::Online,
+		)
 		.await?;
 
 	Ok(set_profile_field::v3::Response {})
@@ -181,6 +197,7 @@ pub(crate) async fn set_profile_field_route(
 /// This also handles the avatar_url and displayname being updated.
 pub(crate) async fn delete_profile_field_route(
 	State(services): State<crate::State>,
+	ClientIp(client): ClientIp,
 	body: Ruma<delete_profile_field::v3::Request>,
 ) -> Result<delete_profile_field::v3::Response> {
 	let sender_user = body.sender_user();
@@ -226,7 +243,12 @@ pub(crate) async fn delete_profile_field_route(
 	// Presence update
 	services
 		.presence
-		.maybe_ping_presence(&body.user_id, body.sender_device.as_deref(), &PresenceState::Online)
+		.maybe_ping_presence(
+			&body.user_id,
+			body.sender_device.as_deref(),
+			Some(client),
+			&PresenceState::Online,
+		)
 		.await?;
 
 	Ok(delete_profile_field::v3::Response {})
@@ -285,7 +307,7 @@ pub(crate) async fn get_timezone_key_route(
 	if !services.users.exists(&body.user_id).await {
 		// Return 404 if this user doesn't exist and we couldn't fetch it over
 		// federation
-		return Err(Error::BadRequest(ErrorKind::NotFound, "Profile was not found."));
+		return Err!(Request(NotFound("Profile was not found.")));
 	}
 
 	Ok(get_timezone_key::unstable::Response {

@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use futures::{Stream, StreamExt};
 use ruma::{RoomId, UserId, api::client::search::search_events::v3::Criteria};
-use matron_server_core::{
+use tuwunel_core::{
 	PduCount, Result,
 	arrayvec::ArrayVec,
 	implement,
@@ -13,7 +13,7 @@ use matron_server_core::{
 		stream::{TryIgnore, WidebandExt},
 	},
 };
-use matron_server_database::{Interfix, Map, keyval::Val};
+use tuwunel_database::{Interfix, Map, keyval::Val};
 
 use crate::rooms::{
 	short::ShortRoomId,
@@ -232,7 +232,7 @@ fn make_prefix(shortroomid: ShortRoomId, word: &str) -> TokenId {
 	let mut key = TokenId::new();
 	key.extend_from_slice(&shortroomid.to_be_bytes());
 	key.extend_from_slice(word.as_bytes());
-	key.push(matron_server_database::SEP);
+	key.push(tuwunel_database::SEP);
 	key
 }
 

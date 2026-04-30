@@ -8,7 +8,7 @@ use ruma::{
 		room::member::{MembershipState, RoomMemberEventContent},
 	},
 };
-use matron_server_core::{Err, Result, at, err, matrix::event::gen_event_id_canonical_json};
+use tuwunel_core::{Err, Result, at, err, matrix::event::gen_event_id_canonical_json};
 
 use crate::Ruma;
 

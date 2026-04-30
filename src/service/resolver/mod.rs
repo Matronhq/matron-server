@@ -10,7 +10,7 @@ use std::sync::Arc;
 
 use async_trait::async_trait;
 use ruma::OwnedServerName;
-use matron_server_core::{Result, smallstr::SmallString, utils::MutexMap};
+use tuwunel_core::{Result, smallstr::SmallString, utils::MutexMap};
 
 use self::{cache::Cache, dns::Resolver, fed::FedDest};
 

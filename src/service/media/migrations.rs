@@ -7,7 +7,7 @@ use std::{
 	time::Instant,
 };
 
-use matron_server_core::{
+use tuwunel_core::{
 	Config, Result, debug, debug_info, debug_warn, error,
 	error::inspect_debug_log,
 	info,
@@ -100,7 +100,7 @@ pub(crate) async fn checkup_sha256_media(services: &Services) -> Result {
 }
 
 async fn handle_media_check(
-	dbs: &(&Arc<matron_server_database::Map>, &Arc<matron_server_database::Map>),
+	dbs: &(&Arc<tuwunel_database::Map>, &Arc<tuwunel_database::Map>),
 	config: &Config,
 	files: &HashSet<OsString>,
 	key: &[u8],

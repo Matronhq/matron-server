@@ -9,7 +9,7 @@ use futures::{
 	stream::{FuturesUnordered, unfold},
 };
 use ruma::OwnedEventId;
-use matron_server_core::{
+use tuwunel_core::{
 	Result, implement, is_equal_to,
 	itertools::Itertools,
 	matrix::{Event, pdu::AuthEvents},

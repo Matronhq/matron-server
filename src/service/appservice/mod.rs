@@ -9,8 +9,8 @@ use async_trait::async_trait;
 use futures::{Future, FutureExt, Stream, TryStreamExt};
 use ruma::{RoomAliasId, RoomId, UserId, api::appservice::Registration};
 use tokio::sync::{RwLock, RwLockReadGuard};
-use matron_server_core::{Err, Result, err, utils::stream::IterStream};
-use matron_server_database::Map;
+use tuwunel_core::{Err, Result, err, utils::stream::IterStream};
+use tuwunel_database::Map;
 
 pub use self::{namespace_regex::NamespaceRegex, registration_info::RegistrationInfo};
 
@@ -39,15 +39,20 @@ impl crate::Service for Service {
 	}
 
 	async fn worker(self: Arc<Self>) -> Result {
-		for (id, appservice) in &self.services.config.appservice {
-			let reg_id = &appservice.id;
-			if reg_id != id {
-				return Err!("Invalid id in config appservice: {reg_id} does not match {id}");
+		for (id, mut appservice) in self.services.config.appservice.clone() {
+			if appservice.id.is_empty() {
+				appservice.id = id.clone();
 			}
 
-			let registration: Registration = appservice.clone().into();
+			if *id != appservice.id {
+				return Err!(Config(
+					"id",
+					"Registration ID {:?} does not match the configured {id:?}",
+					appservice.id
+				));
+			}
 
-			self.load_appservice(registration).await?;
+			self.load_appservice(appservice.into()).await?;
 		}
 
 		if let Some(appservice_dir) = &self.services.config.appservice_dir {

@@ -2,9 +2,6 @@
 
 FROM input AS nix-base
 
-WORKDIR /
-COPY --link --from=input . .
-
 RUN \
 --mount=type=cache,dst=/nix,sharing=shared \
 --mount=type=cache,dst=/root/.cache/nix,sharing=shared \
@@ -19,8 +16,8 @@ EOF
 
 FROM nix-base AS build-nix
 
-WORKDIR /usr/src/matron-server
-COPY --link --from=source /usr/src/matron-server .
+WORKDIR /usr/src/tuwunel
+COPY --link --from=source /usr/src/tuwunel .
 RUN \
 --mount=type=cache,dst=/nix,sharing=shared \
 --mount=type=cache,dst=/root/.cache/nix,sharing=shared \
@@ -35,19 +32,16 @@ RUN \
 		--log-format raw \
 		.
 
-	cp -afRL --copy-contents result /opt/matron-server
+	cp -afRL --copy-contents result /opt/tuwunel
 EOF
 
 
-FROM input AS smoke-nix
+FROM nix-base AS smoke-nix
 
-WORKDIR /
-COPY --link --from=nix-base . .
-
-WORKDIR /usr/src/matron-server
-COPY --link --from=source /usr/src/matron-server .
-ENV MATRON_SERVER_DATABASE_PATH="/tmp/matron-server/smoketest.db"
-ENV MATRON_SERVER_LOG="info"
+WORKDIR /usr/src/tuwunel
+COPY --link --from=source /usr/src/tuwunel .
+ENV TUWUNEL_DATABASE_PATH="/tmp/tuwunel/smoketest.db"
+ENV TUWUNEL_LOG="info"
 RUN \
 --mount=type=cache,dst=/nix,sharing=shared \
 --mount=type=cache,dst=/root/.cache/nix,sharing=shared \
@@ -69,13 +63,10 @@ RUN \
 EOF
 
 
-FROM input AS nix-pkg
+FROM nix-base AS nix-pkg
 
-WORKDIR /
-COPY --link --from=nix-base . .
-
-WORKDIR /usr/src/matron-server
-COPY --link --from=source /usr/src/matron-server .
+WORKDIR /usr/src/tuwunel
+COPY --link --from=source /usr/src/tuwunel .
 RUN \
 --mount=type=cache,dst=/nix,sharing=shared \
 --mount=type=cache,dst=/root/.cache/nix,sharing=shared \
@@ -86,7 +77,7 @@ RUN \
 
     ID=$(nix-store --realise $(nix path-info --derivation))
 
-    mkdir -p matron-server
-    nix-store --export $ID > matron-server/matron-server.drv
-    tar -cvf /opt/matron-server.nix.tar matron-server
+    mkdir -p tuwunel
+    nix-store --export $ID > tuwunel/tuwunel.drv
+    tar -cvf /opt/tuwunel.nix.tar tuwunel
 EOF

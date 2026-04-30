@@ -6,6 +6,7 @@ pub mod debug;
 pub mod defer;
 pub mod future;
 pub mod hash;
+pub mod html;
 pub mod json;
 pub mod math;
 pub mod mutex_map;
@@ -23,7 +24,7 @@ pub mod two_phase_counter;
 pub mod unhandled;
 
 pub use ::ctor::{ctor, dtor};
-pub use ::matron_server_macros::implement;
+pub use ::tuwunel_macros::implement;
 
 pub use self::{
 	arrayvec::ArrayVecExt,

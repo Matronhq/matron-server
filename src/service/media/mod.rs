@@ -16,18 +16,17 @@ use async_trait::async_trait;
 use base64::{Engine as _, engine::general_purpose};
 use futures::{FutureExt, StreamExt, TryFutureExt, TryStreamExt, pin_mut};
 use http::StatusCode;
-use object_store::PutPayload;
 use ruma::{
 	Mxc, OwnedMxcUri, OwnedUserId, UserId,
 	api::client::error::{ErrorKind, RetryAfter},
 	http_headers::ContentDisposition,
 };
 use tokio::{fs, sync::Notify};
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Error, Result, debug, debug_error, debug_info, debug_warn, err, trace,
 	utils::{
 		self, BoolExt, MutexMap,
-		result::{LogDebugErr, LogErr},
+		result::LogDebugErr,
 		stream::{IterStream, TryReadyExt},
 		time::now_millis,
 	},
@@ -57,6 +56,7 @@ pub struct Service {
 	pub(super) db: Data,
 	services: Arc<crate::services::OnceServices>,
 	url_preview_mutex: MutexMap<String, ()>,
+	federation_mutex: MutexMap<String, ()>,
 	mxc_state: MXCState,
 }
 
@@ -76,6 +76,7 @@ impl crate::Service for Service {
 			db: Data::new(args.db),
 			services: args.services.clone(),
 			url_preview_mutex: MutexMap::new(),
+			federation_mutex: MutexMap::new(),
 			mxc_state: MXCState {
 				notifiers: Mutex::new(HashMap::new()),
 				ratelimiter: Mutex::new(HashMap::new()),
@@ -217,6 +218,7 @@ impl Service {
 	}
 
 	/// Deletes a file in the database and from the media directory via an MXC
+	#[tracing::instrument(level = "trace", skip(self))]
 	pub async fn delete(&self, mxc: &Mxc<'_>) -> Result {
 		match self.db.search_mxc_metadata_prefix(mxc).await {
 			| Ok(keys) => {
@@ -245,6 +247,7 @@ impl Service {
 	/// Deletes all media by the specified user
 	///
 	/// currently, this is only practical for local users
+	#[tracing::instrument(level = "trace", skip(self))]
 	pub async fn delete_from_user(&self, user: &UserId) -> Result<usize> {
 		let mxcs = self.db.get_all_user_mxcs(user).await;
 		let mut deletion_count: usize = 0;
@@ -256,13 +259,19 @@ impl Service {
 				continue;
 			};
 
-			debug_info!(%deletion_count, "Deleting MXC {mxc} by user {user} from database and filesystem");
+			debug_info!(
+				%deletion_count,
+				"Deleting MXC {mxc} by user {user} from database and filesystem",
+			);
 			match self.delete(&mxc).await {
 				| Ok(()) => {
 					deletion_count = deletion_count.saturating_add(1);
 				},
 				| Err(e) => {
-					debug_error!(%deletion_count, "Failed to delete {mxc} from user {user}, ignoring error: {e}");
+					debug_error!(
+						%deletion_count,
+						"Failed to delete {mxc} from user {user}, ignoring error: {e}"
+					);
 				},
 			}
 		}
@@ -270,16 +279,94 @@ impl Service {
 		Ok(deletion_count)
 	}
 
-	/// Downloads a media file.
-	pub async fn get(&self, mxc: &Mxc<'_>) -> Result<Option<Media>> {
+	/// Get file from local storage or make a federation request if it
+	/// originates remotely.
+	#[tracing::instrument(
+		level = "debug",
+		err(level = "debug")
+		skip(self),
+	)]
+	pub async fn get_or_fetch(
+		&self,
+		mxc: &Mxc<'_>,
+		timeout_ms: Duration,
+		user: &UserId,
+	) -> Result<Media> {
+		if let Ok(media) = self.get(mxc, Some(timeout_ms)).await {
+			return Ok(media);
+		}
+
+		if self
+			.services
+			.globals
+			.server_is_ours(mxc.server_name)
+		{
+			return Err!(Request(NotFound("Local media not found.")));
+		}
+
+		let lock = self.federation_mutex.lock(&mxc.to_string()).await;
+
+		if self
+			.db
+			.file_metadata_exists(mxc, &Dim::default())
+			.await
+		{
+			drop(lock);
+			return self.get(mxc, None).await;
+		}
+
+		self.fetch_remote_content(mxc, Some(user), None, timeout_ms)
+			.await
+	}
+
+	/// Get file from local storage while waiting up to a timeout_ms if it is
+	/// pending.
+	#[tracing::instrument(
+		level = "debug",
+		err(level = "trace")
+		skip(self),
+	)]
+	pub async fn get(&self, mxc: &Mxc<'_>, timeout: Option<Duration>) -> Result<Media> {
+		if let Ok(meta) = self.get_stored(mxc).await {
+			return Ok(meta);
+		}
+
+		let Some(timeout) = timeout else {
+			return Err!(Request(NotFound("Media not found.")));
+		};
+
+		let Ok(_pending) = self.db.search_pending_mxc(mxc).await else {
+			return Err!(Request(NotFound("Media not found.")));
+		};
+
+		let notifier = self
+			.mxc_state
+			.notifiers
+			.lock()?
+			.entry(mxc.to_string().into())
+			.or_insert_with(|| Arc::new(Notify::new()))
+			.clone();
+
+		if tokio::time::timeout(timeout, notifier.notified())
+			.await
+			.is_err()
+		{
+			return Err!(Request(NotYetUploaded("Media has not been uploaded yet")));
+		}
+
+		self.get_stored(mxc).await
+	}
+
+	/// Get file from local storage.
+	#[tracing::instrument(level = "debug", skip(self))]
+	pub async fn get_stored(&self, mxc: &Mxc<'_>) -> Result<Media> {
 		let meta = self
 			.db
 			.search_file_metadata(mxc, &Dim::default())
-			.await
-			.ok();
+			.await;
 
-		let Some(Metadata { content_type, content_disposition, key }) = meta else {
-			return Ok(None);
+		let Ok(Metadata { content_type, content_disposition, key }) = meta else {
+			return Err!(Request(NotFound("Media not found.")));
 		};
 
 		let path = self.get_media_name_sha256(&key);
@@ -299,76 +386,11 @@ impl Service {
 			return Err!(Request(NotFound("Media not found.")));
 		};
 
-		Ok(Some(Media {
+		Ok(Media {
 			content: bytes.to_vec(),
 			content_type,
 			content_disposition,
-		}))
-	}
-
-	/// Download a file and wait up to a timeout_ms if it is pending.
-	pub async fn get_with_timeout(
-		&self,
-		mxc: &Mxc<'_>,
-		timeout_duration: Duration,
-	) -> Result<Option<Media>> {
-		if let Some(meta) = self.get(mxc).await? {
-			return Ok(Some(meta));
-		}
-
-		let Ok(_pending) = self.db.search_pending_mxc(mxc).await else {
-			return Ok(None);
-		};
-
-		let notifier = self
-			.mxc_state
-			.notifiers
-			.lock()?
-			.entry(mxc.to_string().into())
-			.or_insert_with(|| Arc::new(Notify::new()))
-			.clone();
-
-		if tokio::time::timeout(timeout_duration, notifier.notified())
-			.await
-			.is_err()
-		{
-			return Err!(Request(NotYetUploaded("Media has not been uploaded yet")));
-		}
-
-		self.get(mxc).await
-	}
-
-	/// Download a thumbnail and wait up to a timeout_ms if it is pending.
-	pub async fn get_thumbnail_with_timeout(
-		&self,
-		mxc: &Mxc<'_>,
-		dim: &Dim,
-		timeout_duration: Duration,
-	) -> Result<Option<Media>> {
-		if let Some(meta) = self.get_thumbnail(mxc, dim).await? {
-			return Ok(Some(meta));
-		}
-
-		let Ok(_pending) = self.db.search_pending_mxc(mxc).await else {
-			return Ok(None);
-		};
-
-		let notifier = self
-			.mxc_state
-			.notifiers
-			.lock()?
-			.entry(mxc.to_string().into())
-			.or_insert_with(|| Arc::new(Notify::new()))
-			.clone();
-
-		if tokio::time::timeout(timeout_duration, notifier.notified())
-			.await
-			.is_err()
-		{
-			return Err!(Request(NotYetUploaded("Media has not been uploaded yet")));
-		}
-
-		self.get_thumbnail(mxc, dim).await
+		})
 	}
 
 	/// Gets all the MXC URIs in our media database
@@ -575,14 +597,22 @@ impl Service {
 			.and_then(async |provider| {
 				let path = self.get_media_name_sha256(key);
 				debug!(
-					?key, ?path, provider = ?provider.name,
+					?key, ?path,
+					len = ?file.len(),
+					provider = ?provider.name,
 					"Creating media file on storage provider."
 				);
 
-				provider
-					.put(path.as_str(), PutPayload::from(file.to_vec()))
+				if let Err(e) = provider
+					.put_one(path.as_str(), file.to_vec())
 					.await
-					.log_err()?;
+				{
+					return Err!(Database(error!(
+						?path,
+						?provider,
+						"Failed to store media on provider: {e:?}"
+					)));
+				}
 
 				Ok(1)
 			})
@@ -593,11 +623,18 @@ impl Service {
 	}
 
 	fn storage_providers(&self) -> impl Iterator<Item = &Arc<Provider>> + Send + '_ {
-		self.services
-			.config
-			.media_storage_providers
+		let explicit_providers = &self.services.config.media_storage_providers;
+
+		let or_all_providers = explicit_providers
+			.is_empty()
+			.then(|| self.services.storage.providers())
+			.into_iter()
+			.flatten();
+
+		explicit_providers
 			.iter()
 			.filter_map(|id| self.services.storage.provider(id).ok())
+			.chain(or_all_providers)
 	}
 
 	#[inline]

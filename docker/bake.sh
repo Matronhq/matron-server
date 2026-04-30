@@ -1,7 +1,11 @@
 #!/bin/bash
 set -eo pipefail
 
-BASEDIR=$(dirname "$0")
+# Resolve the repository root from the script's own location and chdir there.
+# All subsequent paths and the docker buildx bake` context are relative and
+# require this.
+cd "$(dirname "$0")/.."
+BASEDIR="docker"
 
 CI="${CI:-false}"
 CI_VERBOSE="${CI_VERBOSE:-false}"
@@ -73,9 +77,9 @@ rust_msrv=$(grep "channel = " "$toolchain_toml" | cut -d'=' -f2 | sed 's/\s"\|"$
 git_checkout="${git_checkout:-HEAD}"
 
 # other options
+rustdoc_base_path="${rustdoc_base_path:-}"
 rocksdb_opt_level=3
 rocksdb_portable=1
-use_chef="true"
 set +a
 
 ###############################################################################

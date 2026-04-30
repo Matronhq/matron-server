@@ -2,14 +2,14 @@ use std::sync::Arc;
 
 use futures::{FutureExt, Stream, StreamExt, pin_mut};
 use ruma::{OwnedRoomId, RoomId, events::room::join_rules::JoinRule};
-use matron_server_core::{
+use tuwunel_core::{
 	Result, implement,
 	utils::{
 		future::BoolExt,
 		stream::{TryIgnore, WidebandExt},
 	},
 };
-use matron_server_database::Map;
+use tuwunel_database::Map;
 
 pub struct Service {
 	db: Data,

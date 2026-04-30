@@ -1,13 +1,12 @@
 use axum::extract::State;
-use axum_client_ip::InsecureClientIp;
 use futures::{FutureExt, StreamExt};
 use ruma::api::client::account::{
 	ThirdPartyIdRemovalStatus, change_password, deactivate, get_3pids,
 	request_3pid_management_token_via_email, request_3pid_management_token_via_msisdn, whoami,
 };
-use matron_server_core::{Err, Result, err, info, utils::ReadyExt};
+use tuwunel_core::{Err, Result, err, info, utils::ReadyExt};
 
-use crate::{Ruma, router::auth_uiaa};
+use crate::{ClientIp, Ruma, router::auth_uiaa};
 
 /// # `POST /_matrix/client/r0/account/password`
 ///
@@ -29,7 +28,7 @@ use crate::{Ruma, router::auth_uiaa};
 #[tracing::instrument(skip_all, fields(%client), name = "change_password")]
 pub(crate) async fn change_password_route(
 	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
+	ClientIp(client): ClientIp,
 	body: Ruma<change_password::v3::Request>,
 ) -> Result<change_password::v3::Response> {
 	let ref sender_user = auth_uiaa(&services, &body).await?;
@@ -96,7 +95,7 @@ pub(crate) async fn whoami_route(
 #[tracing::instrument(skip_all, fields(%client), name = "deactivate")]
 pub(crate) async fn deactivate_route(
 	State(services): State<crate::State>,
-	InsecureClientIp(client): InsecureClientIp,
+	ClientIp(client): ClientIp,
 	body: Ruma<deactivate::v3::Request>,
 ) -> Result<deactivate::v3::Response> {
 	let ref sender_user = auth_uiaa(&services, &body).await?;

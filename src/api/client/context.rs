@@ -4,7 +4,7 @@ use futures::{
 	future::{join, join3, try_join3},
 };
 use ruma::{OwnedEventId, UserId, api::client::context::get_context, events::StateEventType};
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Event, Result, at, debug_warn, err, ref_at,
 	utils::{
 		IterStream,
@@ -13,7 +13,7 @@ use matron_server_core::{
 		stream::{BroadbandExt, ReadyExt, TryIgnore, WidebandExt},
 	},
 };
-use matron_server_service::rooms::{lazy_loading, lazy_loading::Options, short::ShortStateKey};
+use tuwunel_service::rooms::{lazy_loading, lazy_loading::Options, short::ShortStateKey};
 
 use crate::{
 	Ruma,
@@ -115,6 +115,7 @@ pub(crate) async fn get_context_route(
 		room_id,
 		token: Some(base_count.into_unsigned()),
 		options: Some(&filter.lazy_load_options),
+		mode: lazy_loading::Mode::Update,
 	};
 
 	let lazy_loading_witnessed = filter

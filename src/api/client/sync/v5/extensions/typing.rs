@@ -6,7 +6,7 @@ use ruma::{
 	events::typing::{SyncTypingEvent, TypingEventContent},
 	serde::Raw,
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Result, debug_error,
 	utils::{IterStream, ReadyExt},
 };

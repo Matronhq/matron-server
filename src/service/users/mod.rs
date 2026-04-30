@@ -13,14 +13,14 @@ use ruma::{
 	api::client::filter::FilterDefinition,
 	events::{GlobalAccountDataEventType, ignored_user_list::IgnoredUserListEvent},
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Result, debug_warn, err, is_equal_to,
 	pdu::PduBuilder,
 	trace,
 	utils::{self, ReadyExt, stream::TryIgnore},
 	warn,
 };
-use matron_server_database::{Deserialized, Json, Map};
+use tuwunel_database::{Deserialized, Json, Map};
 
 pub use self::{keys::parse_master_key, register::Register};
 
@@ -43,6 +43,8 @@ struct Data {
 	userdeviceid_metadata: Arc<Map>,
 	userdeviceid_token: Arc<Map>,
 	userdeviceid_refresh: Arc<Map>,
+	oidcdevice_userdeviceid: Arc<Map>,
+	oidccskeybypass_userid: Arc<Map>,
 	userfilterid_filter: Arc<Map>,
 	userid_avatarurl: Arc<Map>,
 	userid_blurhash: Arc<Map>,
@@ -68,6 +70,8 @@ impl crate::Service for Service {
 				onetimekeyid_onetimekeys: args.db["onetimekeyid_onetimekeys"].clone(),
 				openidtoken_expiresatuserid: args.db["openidtoken_expiresatuserid"].clone(),
 				logintoken_expiresatuserid: args.db["logintoken_expiresatuserid"].clone(),
+				oidcdevice_userdeviceid: args.db["oidcdevice_userdeviceid"].clone(),
+				oidccskeybypass_userid: args.db["oidccskeybypass_userid"].clone(),
 				todeviceid_events: args.db["todeviceid_events"].clone(),
 				token_userdeviceid: args.db["token_userdeviceid"].clone(),
 				userdeviceid_metadata: args.db["userdeviceid_metadata"].clone(),
@@ -359,6 +363,29 @@ impl Service {
 			.raw_put(token, value);
 
 		expires_in
+	}
+
+	/// Verify a login token is valid and return its owner without consuming it.
+	/// Unlike `find_from_login_token`, the token remains in the database
+	/// after this call and can still be consumed later.
+	pub async fn peek_login_token(&self, token: &str) -> Result<OwnedUserId> {
+		let Ok(value) = self
+			.db
+			.logintoken_expiresatuserid
+			.get(token)
+			.await
+		else {
+			return Err!(Request(Forbidden("Login token is unrecognised")));
+		};
+		let (expires_at, user_id): (u64, OwnedUserId) = value.deserialized()?;
+
+		if expires_at < utils::millis_since_unix_epoch() {
+			trace!(?user_id, ?token, "Removing expired login token");
+			self.db.logintoken_expiresatuserid.remove(token);
+			return Err!(Request(Forbidden("Login token is expired")));
+		}
+
+		Ok(user_id)
 	}
 
 	/// Find out which user a login token belongs to.

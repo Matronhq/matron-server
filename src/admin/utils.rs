@@ -1,14 +1,6 @@
-#![expect(dead_code)]
-
 use ruma::{OwnedRoomId, OwnedUserId, RoomId, UserId};
-use matron_server_core::{Err, Result, err};
-use matron_server_service::Services;
-
-pub(crate) fn escape_html(s: &str) -> String {
-	s.replace('&', "&amp;")
-		.replace('<', "&lt;")
-		.replace('>', "&gt;")
-}
+use tuwunel_core::{Err, Result, err};
+use tuwunel_service::Services;
 
 pub(crate) async fn get_room_info(
 	services: &Services,

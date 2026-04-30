@@ -1,7 +1,10 @@
+#[cfg(test)]
+mod tests;
+
 use std::{any::Any, sync::Arc, time::Duration};
 
 use axum::{
-	Router,
+	Extension, Router,
 	extract::{DefaultBodyLimit, MatchedPath},
 };
 use axum_client_ip::SecureClientIpSource;
@@ -10,7 +13,11 @@ use http::{
 	header::{self, HeaderName},
 	uri::PathAndQuery,
 };
-use tower::ServiceBuilder;
+use tower::{
+	ServiceBuilder,
+	layer::util::Identity,
+	util::{Either, option_layer},
+};
 use tower_http::{
 	catch_panic::CatchPanicLayer,
 	cors::{AllowOrigin, CorsLayer},
@@ -20,13 +27,13 @@ use tower_http::{
 	trace::{DefaultOnFailure, DefaultOnRequest, DefaultOnResponse, TraceLayer},
 };
 use tracing::Level;
-use matron_server_api::router::state::Guard;
-use matron_server_core::{Result, Server, debug, error};
-use matron_server_service::Services;
+use tuwunel_api::router::{ConfiguredIpSource, state::Guard};
+use tuwunel_core::{Result, Server, config::IpSource, debug, error};
+use tuwunel_service::Services;
 
 use crate::{request, router};
 
-const MATRON_SERVER_CSP: &[&str; 5] = &[
+const TUWUNEL_CSP: &[&str; 5] = &[
 	"default-src 'none'",
 	"frame-ancestors 'none'",
 	"form-action 'none'",
@@ -34,7 +41,17 @@ const MATRON_SERVER_CSP: &[&str; 5] = &[
 	"sandbox",
 ];
 
-const MATRON_SERVER_PERMISSIONS_POLICY: &[&str; 2] = &["interest-cohort=()", "browsing-topics=()"];
+const TUWUNEL_HTML_CSP: &[&str; 7] = &[
+	"default-src 'none'",
+	"script-src 'unsafe-inline'",
+	"style-src 'unsafe-inline'",
+	"frame-ancestors 'none'",
+	"form-action 'none'",
+	"base-uri 'none'",
+	"sandbox",
+];
+
+const TUWUNEL_PERMISSIONS_POLICY: &[&str; 2] = &["interest-cohort=()", "browsing-topics=()"];
 
 pub(crate) fn build(services: &Arc<Services>) -> Result<(Router, Guard)> {
 	let server = &services.server;
@@ -61,7 +78,7 @@ pub(crate) fn build(services: &Arc<Services>) -> Result<(Router, Guard)> {
 				.on_response(DefaultOnResponse::new().level(Level::DEBUG)),
 		)
 		.layer(axum::middleware::from_fn_with_state(Arc::clone(services), request::handle))
-		.layer(SecureClientIpSource::ConnectInfo.into_extension())
+		.layer(ip_source_layer(server.config.ip_source))
 		.layer(ResponseBodyTimeoutLayer::new(Duration::from_secs(
 			server.config.client_response_timeout,
 		)))
@@ -91,11 +108,22 @@ pub(crate) fn build(services: &Arc<Services>) -> Result<(Router, Guard)> {
 		))
 		.layer(SetResponseHeaderLayer::if_not_present(
 			HeaderName::from_static("permissions-policy"),
-			HeaderValue::from_str(&MATRON_SERVER_PERMISSIONS_POLICY.join(","))?,
+			HeaderValue::from_str(&TUWUNEL_PERMISSIONS_POLICY.join(","))?,
 		))
 		.layer(SetResponseHeaderLayer::if_not_present(
 			header::CONTENT_SECURITY_POLICY,
-			HeaderValue::from_str(&MATRON_SERVER_CSP.join(";"))?,
+			|res: &http::Response<_>| {
+				let csp = res
+					.headers()
+					.get(header::CONTENT_TYPE)
+					.map(HeaderValue::to_str)
+					.and_then(Result::ok)
+					.is_some_and(|val| val.contains("text/html"))
+					.then(|| TUWUNEL_HTML_CSP.join(";"))
+					.unwrap_or_else(|| TUWUNEL_CSP.join(";"));
+
+				HeaderValue::from_str(&csp).ok()
+			},
 		))
 		.layer(cors_layer(server))
 		.layer(body_limit_layer(server))
@@ -190,6 +218,23 @@ fn cors_layer(server: &Server) -> CorsLayer {
 
 fn body_limit_layer(server: &Server) -> DefaultBodyLimit {
 	DefaultBodyLimit::max(server.config.max_request_size)
+}
+
+fn configured_ip_source(source: IpSource) -> SecureClientIpSource {
+	match source {
+		| IpSource::ConnectInfo => SecureClientIpSource::ConnectInfo,
+		| IpSource::RightmostXForwardedFor => SecureClientIpSource::RightmostXForwardedFor,
+		| IpSource::RightmostForwarded => SecureClientIpSource::RightmostForwarded,
+		| IpSource::XRealIp => SecureClientIpSource::XRealIp,
+		| IpSource::CfConnectingIp => SecureClientIpSource::CfConnectingIp,
+		| IpSource::TrueClientIp => SecureClientIpSource::TrueClientIp,
+		| IpSource::FlyClientIp => SecureClientIpSource::FlyClientIp,
+		| IpSource::CloudFrontViewerAddress => SecureClientIpSource::CloudFrontViewerAddress,
+	}
+}
+
+fn ip_source_layer(source: Option<IpSource>) -> Either<Extension<ConfiguredIpSource>, Identity> {
+	option_layer(source.map(|source| Extension(ConfiguredIpSource(configured_ip_source(source)))))
 }
 
 #[tracing::instrument(name = "panic", level = "error", skip_all)]

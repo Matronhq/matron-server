@@ -4,7 +4,7 @@ use ruma::{
 	api::federation::membership::prepare_leave_event,
 	events::room::member::{MembershipState, RoomMemberEventContent},
 };
-use matron_server_core::{Err, Result, at, matrix::pdu::PduBuilder};
+use tuwunel_core::{Err, Result, at, matrix::pdu::PduBuilder};
 
 use crate::Ruma;
 

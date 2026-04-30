@@ -7,10 +7,16 @@ default-members = ["src/*"]
 
 [workspace.package]
 authors = [
+	"Timo Kösters <timo@koesters.xyz>",
+	"June Clementine Strawberry <june@girlboss.ceo>",
+	"Jason Volk <jason@zemos.net>",
+	"Conduit Contributors",
+	"Conduwuit Contributors",
+	"Tuwunel Contributors",
 	"Matron Contributors",
 ]
 categories = ["network-programming"]
-description = "A fast and reliable Matrix homeserver, forked from Tuwunel."
+description = "Matron Server, a Matrix homeserver distribution tracking Tuwunel upstream."
 # also update edition in rustfmt.toml
 edition = "2024"
 homepage = "https://matron.chat"
@@ -25,10 +31,10 @@ license = "Apache-2.0"
 readme = "README.md"
 repository = "https://github.com/matronhq/matron-server"
 rust-version = "1.94.0"
-version = "1.5.1"
+version = "1.6.0"
 
 [workspace.metadata.crane]
-name = "matron-server"
+name = "tuwunel"
 
 #
 # Dependencies
@@ -103,6 +109,8 @@ version = "1.11"
 
 [workspace.dependencies.bytesize]
 version = "2.3"
+default-features = false
+features = ["serde", "std"]
 
 [workspace.dependencies.cargo_toml]
 version = "0.22"
@@ -118,7 +126,7 @@ features = ["alloc", "std"]
 default-features = false
 
 [workspace.dependencies.clap]
-version = "4.5"
+version = "4.6"
 default-features = false
 features = [
 	"derive",
@@ -130,7 +138,7 @@ features = [
 	"usage",
 ]
 
-# Disabled until Axum updated. Remember to remove cfgs for matron_server_disable.
+# Disabled until Axum updated. Remember to remove cfgs for tuwunel_disable.
 #[workspace.dependencies.console-subscriber]
 #version = "0.4"
 
@@ -139,9 +147,10 @@ version = "0.8.3"
 
 [workspace.dependencies.const-str]
 version = "1.1"
+features = ["proc"]
 
 [workspace.dependencies.criterion]
-version = "0.7"
+version = "0.8"
 default-features = false
 features = [
 	"cargo_bench_support",
@@ -150,7 +159,7 @@ features = [
 ]
 
 [workspace.dependencies.ctor]
-version = "0.5"
+version = "0.10"
 
 [workspace.dependencies.cyborgtime]
 version = "2.1"
@@ -215,7 +224,7 @@ features = [
 ]
 
 [workspace.dependencies.insta]
-version = "1.43"
+version = "1.47"
 features = [
 	"json",
 ]
@@ -251,7 +260,7 @@ features = ["sync", "tls-rustls"]
 version = "0.2"
 
 [workspace.dependencies.libloading]
-version = "0.8"
+version = "0.9"
 
 [workspace.dependencies.log]
 version = "0.4"
@@ -283,6 +292,9 @@ features = [
 	"user",
 ]
 
+[workspace.dependencies.num_cpus]
+version = "1"
+
 [workspace.dependencies.num-traits]
 version = "0.2"
 
@@ -292,6 +304,7 @@ default-features = false
 features = [
 	"aws",
 	"fs",
+	"tls-webpki-roots",
 ]
 
 [workspace.dependencies.opentelemetry]
@@ -337,7 +350,7 @@ default-features = false
 
 [workspace.dependencies.ruma]
 git = "https://github.com/matrix-construct/ruma"
-rev = "2ca9d46bdf2765d382332da2bbd645be9518c374"
+rev = "6092f265c608449d9ac51e857c8ee3f144d73d3d"
 features = [
     "__compat",
     "appservice-api-c",
@@ -358,6 +371,7 @@ features = [
     "unstable-msc3026",
     "unstable-msc3061",
     "unstable-msc3814",
+    "unstable-msc3824",
     "unstable-msc3245",
     "unstable-msc3381", # polls
     "unstable-msc3489", # beacon / live location
@@ -370,7 +384,7 @@ features = [
     "unstable-msc4143",
     "unstable-msc4186",
     "unstable-msc4195",
-    "unstable-msc4203", # sending to-device events to appservices 
+    "unstable-msc4203", # sending to-device events to appservices
     "unstable-msc4310",
     "unstable-msc4311",
     "unstable-extensible-events",
@@ -407,7 +421,7 @@ version = "0.4"
 default-features = false
 
 [workspace.dependencies.sentry]
-version = "0.46"
+version = "0.47"
 default-features = false
 features = [
     "backtrace",
@@ -423,10 +437,10 @@ features = [
 ]
 
 [workspace.dependencies.sentry-tower]
-version = "0.46"
+version = "0.47"
 
 [workspace.dependencies.sentry-tracing]
-version = "0.46"
+version = "0.47"
 
 [workspace.dependencies.serde]
 version = "1.0"
@@ -460,7 +474,7 @@ version = "0.10"
 default-features = false
 
 [workspace.dependencies.similar]
-version = "2.7"
+version = "3.1"
 
 [workspace.dependencies.smallstr]
 version = "0.3"
@@ -501,7 +515,7 @@ version = "2.0"
 default-features = false
 
 [workspace.dependencies.tokio]
-version = "1.50"
+version = "1.52"
 default-features = false
 features = [
 	"fs",
@@ -516,7 +530,7 @@ features = [
 ]
 
 [workspace.dependencies.tokio-metrics]
-version = "0.4"
+version = "0.5"
 
 [workspace.dependencies.toml]
 version = "1.0"
@@ -620,38 +634,38 @@ rev = "200e958941d522a70c5877e3d846f55b5586c68d"
 # Our crates
 #
 
-[workspace.dependencies.matron-server-router]
-package = "matron_server_router"
+[workspace.dependencies.tuwunel-router]
+package = "tuwunel_router"
 path = "src/router"
 default-features = false
 
-[workspace.dependencies.matron-server-admin]
-package = "matron_server_admin"
+[workspace.dependencies.tuwunel-admin]
+package = "tuwunel_admin"
 path = "src/admin"
 default-features = false
 
-[workspace.dependencies.matron-server-api]
-package = "matron_server_api"
+[workspace.dependencies.tuwunel-api]
+package = "tuwunel_api"
 path = "src/api"
 default-features = false
 
-[workspace.dependencies.matron-server-service]
-package = "matron_server_service"
+[workspace.dependencies.tuwunel-service]
+package = "tuwunel_service"
 path = "src/service"
 default-features = false
 
-[workspace.dependencies.matron-server-database]
-package = "matron_server_database"
+[workspace.dependencies.tuwunel-database]
+package = "tuwunel_database"
 path = "src/database"
 default-features = false
 
-[workspace.dependencies.matron-server-core]
-package = "matron_server_core"
+[workspace.dependencies.tuwunel-core]
+package = "tuwunel_core"
 path = "src/core"
 default-features = false
 
-[workspace.dependencies.matron-server-macros]
-package = "matron_server_macros"
+[workspace.dependencies.tuwunel-macros]
+package = "tuwunel_macros"
 path = "src/macros"
 default-features = false
 
@@ -701,7 +715,7 @@ codegen-units = 32
 #	'-Clink-arg=-Wl,--no-gc-sections',
 #]
 
-[profile.release-native.package.matron_server_macros]
+[profile.release-native.package.tuwunel_macros]
 inherits = "release-native.build-override"
 #rustflags = [
 #	'-Crelocation-model=pic',
@@ -731,7 +745,7 @@ strip = "none"
 [profile.dev]
 debug = 0
 #rustflags = [
-#	'--cfg', 'matron_server_mods',
+#	'--cfg', 'tuwunel_mods',
 #	'-Ztime-passes',
 #	'-Zmir-opt-level=0',
 #	'-Zvalidate-mir=false',
@@ -748,10 +762,10 @@ debug = 0
 #	'-Clink-arg=-Wl,-z,lazy',
 #]
 
-[profile.dev.package.matron_server_core]
+[profile.dev.package.tuwunel_core]
 incremental = false
 #rustflags = [
-#	'--cfg', 'matron_server_mods',
+#	'--cfg', 'tuwunel_mods',
 #	'-Ztime-passes',
 #	'-Zmir-opt-level=0',
 #	'-Ztls-model=initial-exec',
@@ -768,9 +782,9 @@ incremental = false
 #	'-Clink-arg=-Wl,-z,nodelete',
 #]
 
-[profile.dev.package.matron-server]
+[profile.dev.package.tuwunel]
 #rustflags = [
-#	'--cfg', 'matron_server_mods',
+#	'--cfg', 'tuwunel_mods',
 #	'-Ztime-passes',
 #	'-Zmir-opt-level=0',
 #	'-Zvalidate-mir=false',
@@ -791,7 +805,7 @@ strip = "symbols"
 opt-level = 'z'
 incremental = false
 #rustflags = [
-#	'--cfg', 'matron_server_mods',
+#	'--cfg', 'tuwunel_mods',
 #	'-Ztls-model=global-dynamic',
 #	'-Cprefer-dynamic=true',
 #	'-Zstaticlib-prefer-dynamic=true',
@@ -1014,5 +1028,5 @@ suspicious = { level = "warn", priority = -1 }
 ## some sadness
 let_underscore_future = { level = "allow", priority = 1 }
 
-# rust doesnt understand matron-server's custom log macros
+# rust doesnt understand tuwunel's custom log macros
 literal_string_with_formatting_args = { level = "allow", priority = 1 }

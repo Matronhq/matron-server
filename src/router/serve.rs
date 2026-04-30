@@ -11,8 +11,8 @@ use std::{
 };
 
 use tokio::task::JoinSet;
-use matron_server_core::{Err, Result, debug_info, info};
-use matron_server_service::Services;
+use tuwunel_core::{Err, Result, debug_info, info};
+use tuwunel_service::Services;
 
 use super::layers;
 use crate::handle::ServerHandle;
@@ -81,9 +81,9 @@ pub(super) async fn serve(services: Arc<Services>, handle: ServerHandle) -> Resu
 		}
 
 		#[cfg(not(feature = "direct_tls"))]
-		return matron_server_core::Err!(Config(
+		return tuwunel_core::Err!(Config(
 			"tls",
-			"matron-server was not built with direct TLS support (\"direct_tls\")"
+			"tuwunel was not built with direct TLS support (\"direct_tls\")"
 		));
 	} else {
 		let plain_futures =
@@ -168,7 +168,7 @@ fn make_log_addrs(
 fn systemd_listeners() -> Result<(Vec<TcpListener>, Vec<UnixListener>)> {
 	use std::os::fd::FromRawFd;
 
-	use matron_server_core::utils::sys::{SocketFamily, get_socket_family};
+	use tuwunel_core::utils::sys::{SocketFamily, get_socket_family};
 
 	let mut tcp = vec![];
 	let mut unix = vec![];

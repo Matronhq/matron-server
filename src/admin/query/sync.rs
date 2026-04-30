@@ -1,7 +1,7 @@
 use clap::Subcommand;
 use ruma::{OwnedDeviceId, OwnedUserId};
-use matron_server_core::Result;
-use matron_server_service::sync::into_connection_key;
+use tuwunel_core::Result;
+use tuwunel_service::sync::into_connection_key;
 
 use crate::{admin_command, admin_command_dispatch};
 

@@ -20,7 +20,7 @@ use std::{
 
 use async_trait::async_trait;
 use ruma::{EventId, OwnedEventId, OwnedRoomId};
-use matron_server_core::{
+use tuwunel_core::{
 	Result, implement,
 	matrix::PduEvent,
 	utils::{MutexMap, bytes::pretty, continue_exponential_backoff},

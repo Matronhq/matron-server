@@ -3,7 +3,7 @@ mod commands;
 
 use clap::Subcommand;
 use ruma::{OwnedEventId, OwnedMxcUri, OwnedServerName};
-use matron_server_core::Result;
+use tuwunel_core::Result;
 
 use crate::admin_command_dispatch;
 

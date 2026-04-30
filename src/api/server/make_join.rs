@@ -11,10 +11,10 @@ use ruma::{
 		},
 	},
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Error, Result, at, debug_info, matrix::pdu::PduBuilder, utils::IterStream,
 };
-use matron_server_service::Services;
+use tuwunel_service::Services;
 
 use crate::Ruma;
 
@@ -155,7 +155,7 @@ pub(crate) async fn user_can_perform_restricted_join(
 		.is_invited(user_id, room_id)
 		.await
 	{
-		return Ok(true);
+		return Ok(false);
 	}
 
 	let Ok(join_rules_event_content) = services

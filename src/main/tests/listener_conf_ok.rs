@@ -1,9 +1,8 @@
 #![cfg(test)]
-#![allow(unused_features)] // 1.96.0-nightly 2026-03-07 bug
 
 use insta::{assert_debug_snapshot, with_settings};
-use matron_server::{Args, Runtime, Server};
-use matron_server_core::Result;
+use tuwunel::{Args, Runtime, Server};
+use tuwunel_core::Result;
 
 #[test]
 fn listener_conf_ok() -> Result {
@@ -16,7 +15,7 @@ fn listener_conf_ok() -> Result {
 
 		let runtime = Runtime::new(Some(&args))?;
 		let server = Server::new(Some(&args), Some(&runtime))?;
-		let result = matron_server::exec(&server, runtime);
+		let result = tuwunel::exec(&server, runtime);
 
 		assert_debug_snapshot!(result);
 		result

@@ -1,8 +1,8 @@
 use clap::Subcommand;
 use futures::StreamExt;
 use ruma::{OwnedServerName, OwnedUserId};
-use matron_server_core::{Err, Result};
-use matron_server_service::sending::Destination;
+use tuwunel_core::{Err, Result};
+use tuwunel_service::sending::Destination;
 
 use crate::Context;
 

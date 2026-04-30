@@ -4,7 +4,7 @@
 use std::fmt::Debug;
 
 use serde::Serialize;
-use matron_server_core::{
+use tuwunel_core::{
 	arrayvec::ArrayVec,
 	ruma::{EventId, RoomId, UserId, serde::Raw},
 };
@@ -80,7 +80,7 @@ fn ser_overflow() {
 
 #[test]
 fn ser_complex() {
-	use matron_server_core::ruma::Mxc;
+	use tuwunel_core::ruma::Mxc;
 
 	#[derive(Debug, Serialize)]
 	struct Dim {
@@ -114,7 +114,7 @@ fn ser_complex() {
 
 #[test]
 fn ser_json() {
-	use matron_server_core::ruma::api::client::filter::FilterDefinition;
+	use tuwunel_core::ruma::api::client::filter::FilterDefinition;
 
 	let filter = FilterDefinition {
 		event_fields: Some(vec!["content.body".to_owned()]),
@@ -129,7 +129,7 @@ fn ser_json() {
 
 #[test]
 fn ser_json_value() {
-	use matron_server_core::ruma::api::client::filter::FilterDefinition;
+	use tuwunel_core::ruma::api::client::filter::FilterDefinition;
 
 	let filter = FilterDefinition {
 		event_fields: Some(vec!["content.body".to_owned()]),
@@ -171,7 +171,7 @@ fn ser_json_macro() {
 	should_panic(expected = "serializing string at the top-level")
 )]
 fn ser_json_raw() {
-	use matron_server_core::ruma::api::client::filter::FilterDefinition;
+	use tuwunel_core::ruma::api::client::filter::FilterDefinition;
 
 	let filter = FilterDefinition {
 		event_fields: Some(vec!["content.body".to_owned()]),
@@ -191,7 +191,7 @@ fn ser_json_raw() {
 	should_panic(expected = "you can skip serialization instead")
 )]
 fn ser_json_raw_json() {
-	use matron_server_core::ruma::api::client::filter::FilterDefinition;
+	use tuwunel_core::ruma::api::client::filter::FilterDefinition;
 
 	let filter = FilterDefinition {
 		event_fields: Some(vec!["content.body".to_owned()]),
@@ -207,7 +207,7 @@ fn ser_json_raw_json() {
 
 #[test]
 fn ser_cbor() {
-	use matron_server_core::ruma::api::client::filter::FilterDefinition;
+	use tuwunel_core::ruma::api::client::filter::FilterDefinition;
 
 	let filter = FilterDefinition {
 		event_fields: Some(vec!["content.body".to_owned()]),
@@ -226,7 +226,7 @@ fn ser_cbor() {
 #[cfg(disable)]
 fn ser_cbor_ruma_raw() {
 	use serde_json::value::RawValue;
-	use matron_server_core::ruma::api::client::filter::FilterDefinition;
+	use tuwunel_core::ruma::api::client::filter::FilterDefinition;
 
 	struct Foo {
 		a: String,

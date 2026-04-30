@@ -3,7 +3,7 @@
 use std::path::PathBuf;
 
 use clap::{ArgAction, Parser};
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Result,
 	config::{Figment, FigmentValue},
 	err, is_true, toml,
@@ -15,8 +15,8 @@ use matron_server_core::{
 #[clap(
 	about,
 	long_about = None,
-	name = "matron-server",
-	version = matron_server_core::version(),
+	name = "tuwunel",
+	version = tuwunel_core::version(),
 )]
 pub struct Args {
 	#[arg(short, long)]
@@ -111,7 +111,7 @@ pub struct Args {
 	#[arg(
 		long,
 		hide(true),
-		env = "MATRON_SERVER_RUNTIME_HISTOGRAM_INTERVAL",
+		env = "TUWUNEL_RUNTIME_HISTOGRAM_INTERVAL",
 		default_value = "25"
 	)]
 	pub worker_histogram_interval: u64,
@@ -120,7 +120,7 @@ pub struct Args {
 	#[arg(
 		long,
 		hide(true),
-		env = "MATRON_SERVER_RUNTIME_HISTOGRAM_BUCKETS",
+		env = "TUWUNEL_RUNTIME_HISTOGRAM_BUCKETS",
 		default_value = "20"
 	)]
 	pub worker_histogram_buckets: usize,
@@ -129,7 +129,7 @@ pub struct Args {
 	#[arg(
 		long,
 		hide(true),
-		env = "MATRON_SERVER_RUNTIME_WORKER_AFFINITY",
+		env = "TUWUNEL_RUNTIME_WORKER_AFFINITY",
 		action = ArgAction::Set,
 		num_args = 0..=1,
 		require_equals(false),
@@ -143,7 +143,7 @@ pub struct Args {
 	#[arg(
 		long,
 		hide(true),
-		env = "MATRON_SERVER_RUNTIME_GC_ON_PARK",
+		env = "TUWUNEL_RUNTIME_GC_ON_PARK",
 		action = ArgAction::Set,
 		num_args = 0..=1,
 		require_equals(false),
@@ -159,7 +159,7 @@ pub struct Args {
 	#[arg(
 		long,
 		hide(true),
-		env = "MATRON_SERVER_RUNTIME_GC_MUZZY",
+		env = "TUWUNEL_RUNTIME_GC_MUZZY",
 		action = ArgAction::Set,
 		num_args = 0..=1,
 		require_equals(false),

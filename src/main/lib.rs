@@ -1,5 +1,3 @@
-#![allow(unused_features)] // 1.96.0-nightly 2026-03-07 bug
-
 pub mod args;
 pub mod logging;
 pub mod mods;
@@ -12,8 +10,8 @@ pub mod signals;
 use std::sync::Arc;
 
 use log as _;
-use matron_server_core::{Result, debug_info, error, mod_ctor, mod_dtor, rustc_flags_capture};
-use matron_server_service::Services;
+use tuwunel_core::{Result, debug_info, error, mod_ctor, mod_dtor, rustc_flags_capture};
+use tuwunel_service::Services;
 
 pub use self::{args::Args, runtime::Runtime, server::Server};
 
@@ -54,9 +52,9 @@ pub async fn async_exec(server: &Arc<Server>) -> Result {
 	Ok(())
 }
 
-#[cfg(any(not(matron_server_mods), not(feature = "matron_server_mods")))]
+#[cfg(any(not(tuwunel_mods), not(feature = "tuwunel_mods")))]
 pub async fn async_start(server: &Arc<Server>) -> Result<Arc<Services>> {
-	extern crate matron_server_router as router;
+	extern crate tuwunel_router as router;
 
 	Ok(match router::start(&server.server).await {
 		| Ok(services) => server
@@ -75,9 +73,9 @@ pub async fn async_start(server: &Arc<Server>) -> Result<Arc<Services>> {
 
 /// Operate the server normally in release-mode static builds. This will start,
 /// run and stop the server within the asynchronous runtime.
-#[cfg(any(not(matron_server_mods), not(feature = "matron_server_mods")))]
+#[cfg(any(not(tuwunel_mods), not(feature = "tuwunel_mods")))]
 pub async fn async_run(server: &Arc<Server>) -> Result {
-	extern crate matron_server_router as router;
+	extern crate tuwunel_router as router;
 
 	if let Err(error) = router::run(
 		server
@@ -96,9 +94,9 @@ pub async fn async_run(server: &Arc<Server>) -> Result {
 	Ok(())
 }
 
-#[cfg(any(not(matron_server_mods), not(feature = "matron_server_mods")))]
+#[cfg(any(not(tuwunel_mods), not(feature = "tuwunel_mods")))]
 pub async fn async_stop(server: &Arc<Server>) -> Result {
-	extern crate matron_server_router as router;
+	extern crate tuwunel_router as router;
 
 	if let Err(error) = router::stop(
 		server
@@ -120,7 +118,7 @@ pub async fn async_stop(server: &Arc<Server>) -> Result {
 /// Operate the server in developer-mode dynamic builds. This will start, run,
 /// and hot-reload portions of the server as-needed before returning for an
 /// actual shutdown. This is not available in release-mode or static builds.
-#[cfg(all(matron_server_mods, feature = "matron_server_mods"))]
+#[cfg(all(tuwunel_mods, feature = "tuwunel_mods"))]
 pub async fn async_exec(server: &Arc<Server>) -> Result {
 	let mut starts = true;
 	let mut reloads = true;

@@ -1,4 +1,5 @@
 use std::{
+	net::IpAddr,
 	sync::Arc,
 	time::{Duration, SystemTime},
 };
@@ -9,15 +10,18 @@ use ruma::{
 	api::client::device::Device, events::AnyToDeviceEvent, serde::Raw,
 };
 use serde_json::json;
-use matron_server_core::{
-	Err, Result, implement,
+use tuwunel_core::{
+	Err, Result, at, implement,
 	utils::{
 		self, ReadyExt,
 		stream::{IterStream, TryIgnore},
-		time::{duration_since_epoch, timepoint_from_epoch, timepoint_from_now},
+		string::to_small_string,
+		time::{
+			duration_since_epoch, timepoint_from_epoch, timepoint_from_now, timepoint_has_passed,
+		},
 	},
 };
-use matron_server_database::{Deserialized, Ignore, Interfix, Json, Map};
+use tuwunel_database::{Cbor, Deserialized, Ignore, Interfix, Json, Map};
 
 /// generated device ID length
 const DEVICE_ID_LENGTH: usize = 10;
@@ -35,7 +39,7 @@ pub async fn create_device(
 	(access_token, expires_in): (Option<&str>, Option<Duration>),
 	refresh_token: Option<&str>,
 	initial_device_display_name: Option<&str>,
-	client_ip: Option<String>,
+	client_ip: Option<IpAddr>,
 ) -> Result<OwnedDeviceId> {
 	let device_id = device_id
 		.map(ToOwned::to_owned)
@@ -51,8 +55,8 @@ pub async fn create_device(
 	self.put_device_metadata(user_id, notify, &Device {
 		device_id: device_id.clone(),
 		display_name: initial_device_display_name.map(Into::into),
-		last_seen_ip: client_ip.map(Into::into),
 		last_seen_ts: Some(MilliSecondsSinceUnixEpoch::now()),
+		last_seen_ip: client_ip.map(to_small_string),
 	});
 
 	if let Some(access_token) = access_token {
@@ -103,6 +107,7 @@ pub async fn remove_device(&self, user_id: &UserId, device_id: &DeviceId) {
 
 	let userdeviceid = (user_id, device_id);
 	self.db.userdeviceid_metadata.del(userdeviceid);
+	self.db.oidcdevice_userdeviceid.del(userdeviceid);
 
 	self.mark_device_key_update(user_id).await;
 	increment(&self.db.userid_devicelistversion, user_id.as_bytes());
@@ -374,15 +379,20 @@ pub async fn update_device_last_seen(
 	&self,
 	user_id: &UserId,
 	device_id: &DeviceId,
-	last_seen: Option<MilliSecondsSinceUnixEpoch>,
+	last_seen_ip: Option<IpAddr>,
+	last_seen_ts: Option<MilliSecondsSinceUnixEpoch>,
 ) -> Result {
 	let mut device = self
 		.get_device_metadata(user_id, device_id)
 		.await?;
 
+	if let Some(last_seen_ip) = last_seen_ip.map(to_small_string) {
+		device.last_seen_ip.replace(last_seen_ip);
+	}
+
 	device
 		.last_seen_ts
-		.replace(last_seen.unwrap_or_else(MilliSecondsSinceUnixEpoch::now));
+		.replace(last_seen_ts.unwrap_or_else(MilliSecondsSinceUnixEpoch::now));
 
 	self.put_device_metadata(user_id, false, &device);
 
@@ -424,6 +434,75 @@ pub async fn device_exists(&self, user_id: &UserId, device_id: &DeviceId) -> boo
 		.userdeviceid_metadata
 		.contains(&(user_id, device_id))
 		.await
+}
+
+#[implement(super::Service)]
+pub async fn is_oidc_device(&self, user_id: &UserId, device_id: &DeviceId) -> bool {
+	self.db
+		.oidcdevice_userdeviceid
+		.contains(&(user_id, device_id))
+		.await
+}
+
+/// Returns the IdP that originally authenticated this device, if known.
+/// Returns `None` for devices predating the idp_id field or non-OIDC devices.
+#[implement(super::Service)]
+pub async fn get_oidc_device_idp(
+	&self,
+	user_id: &UserId,
+	device_id: &DeviceId,
+) -> Option<String> {
+	self.db
+		.oidcdevice_userdeviceid
+		.qry(&(user_id, device_id))
+		.await
+		.deserialized::<Json<String>>()
+		.ok()
+		.map(|Json(idp)| idp)
+}
+
+#[implement(super::Service)]
+pub fn mark_oidc_device(&self, user_id: &UserId, device_id: &DeviceId, idp_id: &str) {
+	self.db
+		.oidcdevice_userdeviceid
+		.put((user_id, device_id), Json(idp_id));
+}
+
+/// Allow cross-signing key replacement without UIAA for the next 10 minutes.
+/// Returns the expiry timestamp in milliseconds.
+#[allow(clippy::must_use_candidate)]
+#[implement(super::Service)]
+pub fn allow_cross_signing_replacement(&self, user_id: &UserId) -> SystemTime {
+	let duration = Duration::from_mins(10);
+	let expires = timepoint_from_now(duration).expect("failed to create timepoint from now");
+
+	self.db
+		.oidccskeybypass_userid
+		.raw_put(user_id, Cbor(expires));
+
+	expires
+}
+
+/// Check if the user is allowed to replace cross-signing keys without UIAA.
+#[implement(super::Service)]
+pub async fn can_replace_cross_signing_keys(&self, user_id: &UserId) -> bool {
+	let Ok(expires): Result<SystemTime, _> = self
+		.db
+		.oidccskeybypass_userid
+		.get(user_id)
+		.await
+		.deserialized::<Cbor<_>>()
+		.map(at!(0))
+	else {
+		return false;
+	};
+
+	if !timepoint_has_passed(expires) {
+		return true;
+	}
+
+	self.db.oidccskeybypass_userid.remove(user_id);
+	false
 }
 
 #[implement(super::Service)]

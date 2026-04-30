@@ -16,7 +16,7 @@ use ruma::{
 	},
 	room_version_rules::{AuthorizationRules, RoomVersionRules},
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Error, Result, err,
 	matrix::{Event, StateKey},
 	trace,

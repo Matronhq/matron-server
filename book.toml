@@ -1,11 +1,12 @@
 [book]
 authors = [
-	"Matron Contributors"
+	"girlbossceo",
+	"jevolk"
 ]
-description = "Matron Server, a high performance successor to Conduit and Conduwuit"
+description = "Tuwunel, a high performance successor to Conduit and Conduwuit"
 language = "en"
 src = "docs"
-title = "Matron Server"
+title = "Tuwunel One"
 text-direction = "ltr"
 
 [build]
@@ -22,8 +23,8 @@ extra-watch-dirs = [
 edition = "2024"
 
 [output.html]
-git-repository-url = "https://github.com/matronhq/matron-server"
-edit-url-template = "https://github.com/matronhq/matron-server/edit/main/{path}"
+git-repository-url = "https://github.com/matrix-construct/tuwunel"
+edit-url-template = "https://github.com/matrix-construct/tuwunel/edit/main/{path}"
 git-repository-icon = "fab-github"
 
 [output.html.search]

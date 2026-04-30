@@ -1,7 +1,7 @@
 use axum::extract::State;
 use futures::FutureExt;
 use ruma::api::client::membership::kick_user;
-use matron_server_core::{Err, Result};
+use tuwunel_core::{Err, Result};
 
 use crate::Ruma;
 

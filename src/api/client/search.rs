@@ -12,13 +12,13 @@ use ruma::{
 	serde::Raw,
 };
 use search_events::v3::{Request, Response};
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Result, at, is_true,
 	matrix::Event,
 	result::FlatOk,
 	utils::{IterStream, option::OptionExt, stream::ReadyExt},
 };
-use matron_server_service::{Services, rooms::search::RoomQuery};
+use tuwunel_service::{Services, rooms::search::RoomQuery};
 
 use crate::Ruma;
 

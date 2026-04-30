@@ -1,7 +1,7 @@
 use clap::Subcommand;
 use futures::stream::StreamExt;
 use ruma::{OwnedDeviceId, OwnedRoomId, OwnedUserId};
-use matron_server_core::Result;
+use tuwunel_core::Result;
 
 use crate::{admin_command, admin_command_dispatch};
 

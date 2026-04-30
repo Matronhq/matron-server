@@ -5,7 +5,7 @@ use futures::{
 	future::{join, join5},
 };
 use ruma::{OwnedRoomId, UInt, events::room::member::MembershipState, uint};
-use matron_server_core::{
+use tuwunel_core::{
 	apply, is_true,
 	matrix::PduCount,
 	trace,
@@ -16,7 +16,7 @@ use matron_server_core::{
 		stream::{BroadbandExt, IterStream},
 	},
 };
-use matron_server_service::sync::Connection;
+use tuwunel_service::sync::Connection;
 
 use super::{
 	ListIds, ResponseLists, SyncInfo, Window, WindowRoom,

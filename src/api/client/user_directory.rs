@@ -5,18 +5,18 @@ use ruma::{
 	api::client::user_directory::search_users::{self},
 	events::room::join_rules::JoinRule,
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Result,
 	utils::{
 		BoolExt, FutureBoolExt,
 		stream::{BroadbandExt, ReadyExt},
 	},
 };
-use matron_server_service::Services;
+use tuwunel_service::Services;
 
 use crate::Ruma;
 
-// Matron Server can handle a lot more results than synapse
+// Tuwunel can handle a lot more results than synapse
 const LIMIT_MAX: usize = 500;
 const LIMIT_DEFAULT: usize = 10;
 

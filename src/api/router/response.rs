@@ -3,7 +3,7 @@ use bytes::BytesMut;
 use http::StatusCode;
 use http_body_util::Full;
 use ruma::api::{OutgoingResponse, client::uiaa::UiaaResponse};
-use matron_server_core::{Error, error};
+use tuwunel_core::{Error, error};
 
 pub(crate) struct RumaResponse<T>(pub(crate) T)
 where

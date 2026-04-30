@@ -1,95 +1,71 @@
-# Matron Server 1.5.1
+# Tuwunel 1.6.0
 
-March 6, 2026
-
-### Security Fixes
-
-- A security audit of SSO/OIDC released with 1.5.0 uncovered several issues. We strongly advise everyone using SSO/OIDC upgrade to this release. Users should also note that until MSC2454 is implemented (tracked by #314) accounts will have to set a password to access functionality protected by User Interactive Authentication (e.g. when removing devices). We are deeply grateful to @outfrost and @exodrifter for their effort and professionalism as security researchers.
-
-- Case-sensitive comparisons in Room Access Control Lists were fixed by @velikopter (ruma/ruma#2358) (matrix-construct/ruma#3) (814cbc2f3).
+April 9, 2026
 
 ### New Features & Enhancements
 
-- New options for `identity_provider` configurations include: `trusted` allowing association of SSO accounts to existing matrix users (#252); `unique_id_fallbacks` to disable random-string users; `registration` to prevent registration through an IdP altogether; `check_cookie` for deployments that cannot use cookies.
+- **Next-Gen Auth OIDC** server enhancing ElementX and SchildiNext has arrived! It all began only a month ago with (#342), a large draft PR by @lytedev assessed by the Tuwunel team to be several months away. What happened next was truly extraordinary. Starting with @chbgdn and followed by @siennathesane, @DonPrus and @shaba an entire project within this project assembled to test and iterate this branch at a rapid clip. The OIDC server now builds on existing infrastructure in Tuwunel previously used for SSO. If you have an Identity Provider configured already for use with SSO then the OIDC server Just Works. Huge thanks to everyone involved. (Implements MSC2964/2965/2966/2967)
 
-- Thanks to @Enginecrafter77 password authorization flows can now be disabled by configuring `login_with_password = false`. Clients will hide the input boxes for username and password. This option is useful for an e.g. SSO-only server. (#336)
+- **S3 Storage support** is now available! Starting from (#362) graciously developed by @exodrifter, Tuwunel now introduces multiple media backends with configurable sections. Support currently includes S3 endpoints and local filesystem directories. The existing media directory is now itself a configurable storage provider implied by the section `[global.storage_provider.media.local]`. See the examples under `[global.storage_provider.<ID>.S3]` to configure your own S3 provider. Then list it in `media_storage_providers` to download media from it, and `store_media_on_providers` for uploading media to it. Experimental migration support is available with the `!admin query storage sync` command. SPECIAL UPDATE: Thanks to testing by @utop-top large uploads (~200 MiB) may not work for some S3 providers until additional support is added in 1.6.1. We apologize for this limitation.
 
-- Thanks to @Lymia users of btrfs will see reduced space usage if they configure the new option `rocksdb_allow_fallocate = false`. (#322) (PR also has links to more information)
+- User-Interactive Authentication for SSO accounts (MSC2454) has been made possible thanks to @chbgdn in (#389). Accounts no longer require setting a password to use features protected by UIAA flows. Users wishing to disable password authentication on their account altogether may do so by changing it to a single asterisk '*' character (use the admin room commands if your client refuses this password change).
 
-- Instructions for how to configure the TURN server built into Livekit and several corrections were contributed by serial documentation author @winyadepla in (#285).
+- User-Interactive Authentication for Next-gen OIDC (MSC4312) was implemented by serial auth-system contributor @chbgdn in (#405). This provides cross-signing/identity reset functionality for ElementX and co.
 
-- Many users will appreciate substantial documentation by @alametti for configuring well-known and root domain delegation in (#352).
+- Asynchronous media uploads for appservices was implemented thanks to @donjuanplatinum (MSC2246) in (#347).
 
-- Thank you @the-hazelnut for updating TURN and Matrix RTC documentation with ports to be forwarded for NAT. (#305) (#306)
+- Thanks to @dasha-uwu the `appservice_dir` can be configured to a directory containing all your appservice yaml files.
 
-- The `username` claim is now recognized when deciding the MXID during SSO account registration thanks to a suggestion by @aazf in (#287).
+- @donjuanplatinum implemented the server-side for fast-joins (MSC3706) in (#349). Thank you!
 
-- The max limit for `/messages` was increased from 100 to 1000 by @dasha-uwu which should match the limit on Synapse but with far less of a performance hazard.
+- Thanks to @ventureoo we support sockets managed by systemd after (#360) (issue #355).
 
-- @dasha-uwu properly optimized certain checked-math macros; other checked-math macros were also optimized for inlining.
+- @vladexa prevented duplicate reactions from being sent by a client to maintain spec compliance with (#353), thank you!
 
-- Concurrent batch requests can now be made to a notary server. The default concurrency is now two, and the size of the batches have been decreased by a third. This should reduce the time it takes to join large rooms.
+- Thank you @alametti for adding delegation examples (e.g. example.com to matrix.example.com) to the documentation in (#352).
 
-- Optimization of functions which hurt performance for syncing user-presence were partially completed, though with marked improvement from before.
+- Thanks to @Lama-Thematique the admin room user registration notice was improved in (#387).
 
-- Optimization of new state-resolution functionality added during Project Hydra took place. Along with additional optimization for auth-chain gathering, CPU use for large/complex rooms (so-called "bad rooms") has been greatly reduced.
+- Thank you @dasha-uwu for implementing the MSC4143 endpoint.
+
+- Thank you @dasha-uwu for removing the report score per MSC4277.
+
+- Thank you @dasha-uwu for removing v1 send_join/leave as per MSC4376.
+
+- RocksDB compaction details are logged for the curious in verbose logging builds.
+
+- Numerous performance optimizations including JSON deserialization and allocator optimizations.
+
+- Sliding-sync no longer persists subscriptions across requests.
+
+- Configuration option `allowed_remote_server_names_experimental` added as exclusive federation allow-listing. NOTE: the `_experimental` suffix was added to indicate the logic of this feature will change in an upcoming release and the suffix will be removed. We sincerely regret this inconvenience.
 
 ### Bug Fixes
 
-- Special thanks to @hatomist for fixing an error which changes a users's account-type when they set a password (#313). This impacted LDAP and some SSO users. We apologize for the inconvenience this may have caused.
+- Thank you @jameskimmel for fixing the nginx configuration for http/2 support. (#391)
 
-- We appreciate effort by @Jeidnx for addressing various issues with SSO/OIDC Identity Provider configuration in (#281). Also noteworthy was the idea to derive the callback_url from other parameters by default rather than explicitly requiring it. Thanks to @Magnitaizer for reporting initially in (#276).
+- @exodrifter fixed various errors and typos in documentation (#343), some reported by @RhenCloud in (#338). Thank you both!
 
-- Thanks @VlaDexa for fixing the missing output formatting for the oauth delete command. (#321)
+- @vladexa fixed systemd reloading by sending monotonic time after consultation with @rexbron. (#359) Thank you both!
 
-- Thank you @risu729 for updating the default port number in the docker run command documentation. (#298)
+- Thanks to @exodrifter the media delete range commands now have improved verbiage as of (#375).
 
-- Thank you @Lamby777 for removing an errant `version` field in the docker-compose example. (299)
+- @yefimg fixed the UIA password flow not being advertised to LDAP users due to regression (#378). Special thanks for this!
 
-- Thank you @cornerot for updating the docker-compose with-traefik which still said Conduit instead of Matron Server after all this time. (#308)
+- Thank you @proximalriver for fixing the missing `server` keyword in the nginx example. (#383)
 
-- Thank you @exodrifter for fixing errors and typos in the MatrixRTC documentation (#343) based on a report by @RhenCloud (#338).
+- @chbgdn fixed the m.change_password capability not being set based on `login_with_password`. (#388) Thank you!
 
-- Thank you @wuyukai0403 for proofreading and fixing a typo in the troubleshooting document. (#312)
+- Thank you @centromere for reporting cross-platform build regressions in #357 which were fixed.
 
-- A report by @BVollmerhaus lead to the reopening of (#240) to use Livekit/lk-jwt-service when federation is disabled. This was re-resolved by @dasha-uwu in (b79920a).
+- Thank you @Ada-lave for reporting a regression with admin startup commands in #320 which we fixed.
 
-- Thanks to @Jeidnx for identifying a missing SSO redirect route in (#290) which was fixed in (matrix-construct/ruma@0130f6a).
+- @0x1af2aec8f957 reported the new systemd-friendly listener system required reuse-address flags to be set (#374). Thank you for reporting!
 
-- We appreciate the panic report by @Spaenny in #296 which occurred during SSL-related upgrades on the main branch. Fixed by @dasha-uwu (87faf81).
+- Thank you @Batmaev for reporting non-compliant minimum timeout was imposed on sliding-sync in (#402) which was corrected.
 
-- Thanks to report (#302) by @data-niklas whitespace in the configured `client_secret_file` is now properly ignored thanks to @dasha-uwu (6f5ae17).
+- @dasha-uwu fixed admin room upgrade to work as expected. @dfuchss inspired with (#361) among many other informal reports. We appreciate the effort of everyone involved on this!
 
-- After @Giwayume reported in (#303) that URL previews failed for some sites, an investigation by @dasha-uwu discovered Matron Server's User-Agent header required some adjustment.
+- @tycrek reported the conduit user is involved in `force-join-all-local-users` commands (#373) which was fixed thanks to @dasha-uwu.
 
-- @dasha-uwu refactored the Unix socket listener with main-branch testing by @VlaDexa (#310) and follow-up fixes in (488bd62).
-
-- @jonathanmajh reported in (#315) and @wmstens simultaneously reported in (#318) that admin status was not granted to the server's first user when registering with SSO/OIDC. This was fixed by (e74186a).
-
-- After a report by @tcyrus in (#328) that the RPM postinst script is not properly creating the matron-server user. This was fixed by @x86pup in (5a55f84).
-
-- Thank you @cloudrac3r for reporting in (#330) that events were being unnecessarily sent to some appservices. This was fixed by @dasha-uwu in (d073e17).
-
-- Thanks to the report in (#331) by @BVollmerhaus the first registered user is not granted admin when originating from an appservice. Fixed by @dasha-uwu in (9dfba59).
-
-- The report by @rexbron in (#337) discovered that some distributions set modest limits on threads per process. On many-core (32+) we may exceed these limits. The `RLIMIT_NPROC` is now raised (9e09162) to mitigate this.
-
-- @x86pup set ManagedOOMPreference=avoid due to systemd not recognizing pressure-based deallocation with `madvise(2)` is not an out-of-memory condition.
-
-- @dasha-uwu removed unnecessary added delays in the client endpoint for reporting.
-
-- Server shutdown did not properly indicate offline status of the conduit user due to a recent regression, now fixed.
-
-- @dasha-uwu fixed logic issues in the client `/members` query filter. These same logic errors were also found in Synapse and Dendrite.
-
-- @dasha-uwu fixed the missing advertisement for `org.matrix.msc3827.stable` in client `/versions`.
-
-- Custom profile fields were sometimes being double-escaped in responses to clients due to a JSON re-interpretation issue which is now fixed.
-
-- @dasha-uwu fixed checks related to canonical aliases (0381547c5).
-
-- @dasha-uwu relaxed the `encryption_enabled_by_default_for_room_type` "invite" option to not match all rooms.
-
-- @x86pup fixed an issue with `display_name` and `avatar_url` omitted in `/joined_members` (fixed in our Ruma).
-
-- Event processing of missing `prev_event`'s are no longer interrupted by an error from a sibling `prev_event`. This reduces CPU use by not repeating event processing before it would otherwise succeed.
+- Thanks to @dasha-uwu bugs and compliance regarding `initial_state` during room creation were addressed.

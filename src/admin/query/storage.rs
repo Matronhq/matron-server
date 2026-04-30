@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use futures::{FutureExt, StreamExt, TryStreamExt, future::try_join};
-use matron_server_core::{
+use tuwunel_core::{
 	Result,
 	utils::{
 		result::LogErr,
@@ -9,7 +9,7 @@ use matron_server_core::{
 		string::SplitInfallible,
 	},
 };
-use matron_server_service::storage::CopyMode;
+use tuwunel_service::storage::CopyMode;
 
 use crate::{admin_command, admin_command_dispatch};
 
@@ -314,7 +314,7 @@ async fn query_storage_sync(&self, src: String, dst: String) -> Result {
 		.try_stream()
 		.broadn_and_then(2, async |item| {
 			let data = src_p.get(item.as_ref()).await?;
-			let put = dst_p.put(item.as_ref(), data).await?;
+			let put = dst_p.put_one(item.as_ref(), data).await?;
 
 			Ok((item, put))
 		})

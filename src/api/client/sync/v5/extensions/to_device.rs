@@ -1,6 +1,6 @@
 use futures::StreamExt;
 use ruma::api::client::sync::sync_events::v5::response;
-use matron_server_core::{self, Result, at};
+use tuwunel_core::{self, Result, at};
 
 use super::{Connection, SyncInfo};
 

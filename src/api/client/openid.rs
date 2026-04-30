@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use axum::extract::State;
 use ruma::{api::client::account, authentication::TokenType};
-use matron_server_core::{Err, Result, utils};
+use tuwunel_core::{Err, Result, utils};
 
 use super::TOKEN_LENGTH;
 use crate::Ruma;

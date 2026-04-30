@@ -7,7 +7,7 @@ use hickory_resolver::{
 	lookup_ip::LookupIp,
 };
 use reqwest::dns::{Addrs, Name, Resolve, Resolving};
-use matron_server_core::{Result, Server, err, trace};
+use tuwunel_core::{Result, Server, err, trace};
 
 use super::cache::{Cache, CachedOverride};
 

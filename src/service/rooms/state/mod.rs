@@ -8,7 +8,7 @@ use ruma::{
 	room_version_rules::AuthorizationRules,
 	serde::Raw,
 };
-use matron_server_core::{
+use tuwunel_core::{
 	Event, PduEvent, Result, err,
 	error::inspect_debug_log,
 	implement,
@@ -22,7 +22,7 @@ use matron_server_core::{
 	},
 	warn,
 };
-use matron_server_database::{Deserialized, Ignore, Interfix, Map};
+use tuwunel_database::{Deserialized, Ignore, Interfix, Map};
 
 use crate::{
 	rooms::{
@@ -142,12 +142,7 @@ pub async fn force_state(
 					.await
 			},
 			| TimelineEventType::SpaceChild => {
-				self.services
-					.spaces
-					.roomid_spacehierarchy_cache
-					.lock()
-					.await
-					.remove(&pdu.room_id);
+				self.services.spaces.cache_evict(pdu.room_id());
 
 				Ok(())
 			},

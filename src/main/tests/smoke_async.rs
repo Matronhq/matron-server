@@ -1,9 +1,8 @@
 #![cfg(test)]
-#![allow(unused_features)] // 1.96.0-nightly 2026-03-07 bug
 
 use insta::{assert_debug_snapshot, with_settings};
-use matron_server::{Args, Runtime, Server};
-use matron_server_core::Result;
+use tuwunel::{Args, Runtime, Server};
+use tuwunel_core::Result;
 
 #[test]
 fn smoke_async() -> Result {
@@ -15,7 +14,7 @@ fn smoke_async() -> Result {
 		let runtime = Runtime::new(Some(&args))?;
 		let server = Server::new(Some(&args), Some(&runtime))?;
 		let result = runtime.block_on(async {
-			matron_server::async_exec(&server).await
+			tuwunel::async_exec(&server).await
 		});
 
 		drop(runtime);

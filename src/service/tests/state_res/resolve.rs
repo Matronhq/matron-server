@@ -21,12 +21,12 @@ use serde_json::{
 };
 use similar::{Algorithm, udiff::unified_diff};
 use tracing_subscriber::EnvFilter;
-use matron_server_core::{
+use tuwunel_core::{
 	Result, err,
 	matrix::{Event, Pdu, StateKey},
 	utils::stream::IterStream,
 };
-use matron_server_service::rooms::state_res::{AuthSet, StateMap, resolve};
+use tuwunel_service::rooms::state_res::{AuthSet, StateMap, resolve};
 
 /// Create a new snapshot test.
 ///

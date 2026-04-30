@@ -12,7 +12,7 @@ use ruma::{
 	},
 };
 use serde_json::value::RawValue as RawJsonValue;
-use matron_server_core::{
+use tuwunel_core::{
 	Err, Result, at, debug_error, err,
 	itertools::Itertools,
 	matrix::event::gen_event_id_canonical_json,
@@ -23,7 +23,7 @@ use matron_server_core::{
 	},
 	warn,
 };
-use matron_server_service::Services;
+use tuwunel_service::Services;
 
 use crate::{Ruma, client::sync::calculate_heroes};
 

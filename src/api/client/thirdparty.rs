@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use ruma::api::client::thirdparty::get_protocols;
-use matron_server_core::Result;
+use tuwunel_core::Result;
 
 use crate::Ruma;
 

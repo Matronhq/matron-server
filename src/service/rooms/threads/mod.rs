@@ -6,7 +6,7 @@ use ruma::{
 	api::client::threads::get_threads::v1::IncludeThreads, events::relation::BundledThread, uint,
 };
 use serde_json::json;
-use matron_server_core::{
+use tuwunel_core::{
 	Event, Result, err,
 	matrix::pdu::{PduCount, PduEvent, PduId, RawPduId},
 	trace,
@@ -15,7 +15,7 @@ use matron_server_core::{
 		stream::{TryIgnore, WidebandExt},
 	},
 };
-use matron_server_database::{Deserialized, Interfix, Map};
+use tuwunel_database::{Deserialized, Interfix, Map};
 
 pub struct Service {
 	db: Data,
