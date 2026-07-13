@@ -19,7 +19,7 @@ configuration docs unless a Matron-specific deployment wrapper says otherwise.
 |---------|-------------|
 | [Matron Desktop](https://github.com/Matronhq/matron-desktop) | Desktop client |
 | [Matron Web](https://github.com/Matronhq/matron-web) | Web client |
-| [Matron iOS](https://github.com/Matronhq/matron-iOS-app) | iOS client |
+| [Matron iOS](https://github.com/Matronhq/matron-apple) | iOS client |
 | **Matron Server** | Matrix homeserver (this repo) |
 | [Matron Journal](https://github.com/Matronhq/matron-journal) | Sync server for Matron's native journal transport |
 | [claude-matrix-bridge](https://github.com/Matronhq/claude-matrix-bridge) | Runs Claude Code sessions and bridges them to Matrix and the journal |
