@@ -1,5 +1,11 @@
 # Matron Server
 
+[Matron](https://matron.chat) is a chat system for talking to Claude Code
+agents from your phone, desktop, or browser. This repository is the Matrix
+homeserver used by Matron's Matrix transport: clients connect to it over the
+Matrix protocol, and [claude-matrix-bridge](https://github.com/Matronhq/claude-matrix-bridge)
+relays messages between Matrix rooms and Claude Code sessions.
+
 Matron Server is Matron's Matrix homeserver distribution, tracking
 [Tuwunel](https://github.com/matrix-construct/tuwunel) upstream.
 
@@ -11,11 +17,13 @@ configuration docs unless a Matron-specific deployment wrapper says otherwise.
 
 | Project | Description |
 |---------|-------------|
-| [Matron Desktop](https://github.com/matronhq/matron-desktop) | Desktop client |
-| [Matron Web](https://github.com/matronhq/matron-web) | Web client |
-| [Matron iOS](https://github.com/matronhq/matron-ios) | iOS client |
+| [Matron Desktop](https://github.com/Matronhq/matron-desktop) | Desktop client |
+| [Matron Web](https://github.com/Matronhq/matron-web) | Web client |
+| [Matron iOS](https://github.com/Matronhq/matron-apple) | iOS client |
 | **Matron Server** | Matrix homeserver (this repo) |
-| [Dev Boxer](https://github.com/matronhq/dev-boxer) | One-command dev environment setup |
+| [Matron Journal](https://github.com/Matronhq/matron-journal) | Sync server for Matron's native journal transport |
+| [claude-matrix-bridge](https://github.com/Matronhq/claude-matrix-bridge) | Runs Claude Code sessions and bridges them to Matrix and the journal |
+| [Dev Boxer](https://github.com/Matronhq/dev-boxer) | One-command dev environment setup |
 
 ## Upstream
 
@@ -44,6 +52,18 @@ docker run -d \
   -e TUWUNEL_ALLOW_REGISTRATION="false" \
   ghcr.io/matronhq/matron-server:latest
 ```
+
+## Build from source
+
+The crate and binary are still named `tuwunel` (see [Upstream](#upstream)):
+
+```bash
+cargo build --release
+```
+
+The resulting binary is at `target/release/tuwunel`. For toolchain details,
+feature flags, and deeper build documentation, see the upstream
+[Tuwunel docs](https://matrix-construct.github.io/tuwunel/).
 
 ## Configuration
 
